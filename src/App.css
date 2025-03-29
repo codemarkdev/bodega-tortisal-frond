@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+    --color-tortisal: oklch(0.65 0.15 250); 
+    --color-tortisal-100: oklch(0.60 0.15 250); 
+    --color-tortisal-200: oklch(0.55 0.15 250); 
+    --color-tortisal-300: oklch(0.50 0.15 250); 
+    
+
+    --color-background: #f3f4f6;
+    --color-surface: #ffffff; 
+    --color-border: #d1d5db;
+
+    --color-text: #374151; 
+    --color-text-light: #6b7280; 
+}
+
+.active {
+    color: var(--color-tortisal-200);
+}
+html {
+    overflow-y: scroll;
+  }
