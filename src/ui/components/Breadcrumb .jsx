@@ -1,23 +1,26 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import PropTypes from "prop-types";
+import { ChevronRight } from "../icons";
+
 
 export const Breadcrumb = ({ items }) => {
   return (
-    <nav className="flex items-center text-sm text-gray-600 mb-4">
+    <nav className="flex items-center space-x-1 text-sm text-gray-500">
       {items.map((item, index) => (
         <React.Fragment key={index}>
           {index > 0 && (
-            <span className="mx-2 text-gray-400 select-none">/</span>
+            <ChevronRight/>
           )}
           {item.href ? (
             <Link
               to={item.href}
-              className="hover:text-gray-900 transition-colors"
+              className="hover:text-gray-700 transition-colors duration-150"
             >
               {item.label}
             </Link>
           ) : (
-            <span className="text-gray-900 font-medium">{item.label}</span>
+            <span className="text-gray-700 font-normal">{item.label}</span>
           )}
         </React.Fragment>
       ))}

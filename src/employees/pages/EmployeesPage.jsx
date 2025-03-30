@@ -1,4 +1,8 @@
+import { columnsEmployees } from "../../../confiTable";
 import { Table } from "../../ui";
+import { Breadcrumb } from "../../ui/components/Breadcrumb ";
+
+import { Trash, Edit } from "../../ui/icons";
 
 const employeesData = [
     {
@@ -64,36 +68,37 @@ const employeesData = [
   ];
 export const EmployeesPage = () => {
 
-    const columns = [
-        { key: 'id', title: 'ID' },
-        { key: 'first_name', title: 'Nombre' },
-        { key: 'last_name', title: 'Apellido' },
-        { key: 'did', title: 'DUI' }
-      ];
+    
       const actions = [
         {
+          icon: Edit,
           label: 'Editar',
           onClick: (employee) => console.log('Editar empleado:', employee)
         },
         {
+          icon: Trash,
           label: 'Eliminar',
-          className: 'text-red-600 hover:text-red-900',
           onClick: (employee) => console.log('Eliminar empleado:', employee)
         }
+      ];
+
+      const breadcrumbItems = [
+        { label: "Empleados", href: "/employees" },
       ];
       return(
 
         <div className="flex flex-col px-2 py-4">
+ <Breadcrumb items={breadcrumbItems} />
 
 
             <Table
             title="Lista de Empleados"
-            columns={columns}
+            columns={columnsEmployees}
             data={employeesData}
             actions={actions}
             onAddClick={() => console.log('Agregar nuevo empleado')}
             addButtonText="Nuevo Empleado"
-            itemsPerPage={5} 
+            itemsPerPage={6} 
           />
         </div>
       )
