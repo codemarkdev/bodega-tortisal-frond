@@ -1,5 +1,10 @@
+import { useContext } from "react";
 import { useForm } from "../../../hooks/useForm";
-import { Input } from "../../../ui";
+import { Alert, Form, Input } from "../../../ui";
+import apiRequest from "../../../helpers/ApiRequest";
+import { AuthContext } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const validate = (values) => {
     const errors = {};
@@ -13,53 +18,86 @@ const validate = (values) => {
 };
 
 export const LoginPage = () => {
+    const navigate = useNavigate()
+    const { onLogin } = useContext(AuthContext);
+    const [alert, setAlert] = useState({
+        show: false,
+        msg: ''
+    })
     const { values, errors, handleChange, handleSubmit } = useForm(
         { username: "", password: "" },
         validate
     );
 
-    const onSubmit = () => {
-        console.log("login", values);
+    const handleLogin = async() => {
+  
+
+      const {status, data}  = await apiRequest({
+            path: 'users/login',
+            method: 'post',
+            data: values
+        })
+
+        if (status === 201) {
+            const {password, ...userData} = data;
+            onLogin(userData);
+            navigate('/');
+        } else {
+            setAlert({
+                show: true,
+                msg: 'Credenciales inválidas'
+            });
+        }
+     
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen ">
-            <form
-                onSubmit={(event) => handleSubmit(event, onSubmit)}
-                className=" bg-surface p-6 rounded shadow-md w-full max-w-sm"
+        <div className="flex flex-col items-center justify-center min-h-screen ">
+            <Form
+                onSubmit={(e) => {
+                    handleSubmit(e, () => {
+                        handleLogin();
+                    });
+                }}
+                submitText="Iniciar Sessión"
+                className=" min-w-80 w-md"
             >
-                <div className="mb-4">
-                   <Input
-                   label="Usuario"
-                   name="username"
-                   value={values.username}
-                   onChange={handleChange}
-                   required
-                   />
-                   {errors.username && <p className="text-red-500 text-sm">{errors.username}</p>}
-                </div>
-                <div className="mb-4">
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                        Contraseña
-                    </label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        value={values.password}
-                        onChange={handleChange}
-                        className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        required
-                    />
-                    {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
-                </div>
-                <button
-                    type="submit"
-                    className="w-full bg-tortisal text-white py-2 px-4 rounded hover:bg-tortisal-200 focus:outline-none focus:ring-2 focus:ring-tortisal-200 focus:ring-offset-2"
-                >
-                    Iniciar sesión
-                </button>
-            </form>
+
+                <Input
+                    label="Usuario"
+                    name="username"
+                    value={values.username}
+                    onChange={handleChange}
+                    required
+                />
+                {errors.username && <p className="text-red-500 text-sm">{errors.username}</p>}
+
+
+                <Input
+                    label="Contraseña"
+                    name="password"
+                    value={values.password}
+                    onChange={handleChange}
+                    required
+                    type='password'
+                />
+                {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+
+
+            </Form>
+            {alert.show && (
+                    <div className="mt-4 w-full max-w-md">
+                        <Alert 
+                            message={alert.msg} 
+                            type="error" 
+                            onClose={() => setAlert({
+                                show: false, 
+                                msg: ''
+                            })} 
+                        />
+                    </div>
+                )}
+
         </div>
     );
 };

@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import Tortisal from '../../assets/logo/tortisal.png'
+import { AuthContext } from '../../auth/context/AuthContext';
+import { useContext } from 'react';
 
 export const Navbar = () => {
+    const { onLogout } = useContext(AuthContext)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const navigate = useNavigate()
+    const handleLogout = () => {
+        onLogout();
+        navigate('/login', {
+            replace: true
+        })
+    }
+
 
     return (
         <header className="absolute inset-x-0 top-0 z-50">
@@ -34,7 +45,7 @@ export const Navbar = () => {
                     <NavLink to="/shifts" className={(({ isActive }) => `nav-item nav-link text-sm/6 font-semibold text-gray-900 ${isActive ? 'active' : ''}`)}>Turnos</NavLink>
                 </div>
                 <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-                    <Link to="/login" className="text-sm/6 font-semibold text-gray-900">Cerrar sesión <span aria-hidden="true">&rarr;</span></Link>
+                    <button onClick={handleLogout} className="text-sm/6 font-semibold text-gray-900">Cerrar sesión <span aria-hidden="true">&rarr;</span></button>
                 </div>
             </nav>
             {/*show mobile*/}
