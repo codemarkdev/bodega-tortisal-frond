@@ -1,82 +1,56 @@
+import { useState } from "react";
 import { columnsUser } from "../../../confiTable";
-import { Table } from "../../ui";
+import apiRequest from "../../helpers/ApiRequest";
+import {Table } from "../../ui";
 import { Breadcrumb } from "../../ui/components/Breadcrumb ";
 import { Edit, Trash } from "../../ui/icons";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const UserPage = () => {
-    const usersData = [
-        {
-            id: 1,
-            username: 'admin',
-            role: 'Administrador',
-            createdAt: '2023-01-15'
-        },
-        {
-            id: 2,
-            username: 'mgarciac',
-            role: 'Gerente',
-            createdAt: '2023-02-20'
-        },
-        {
-            id: 3,
-            username: 'jperez',
-            role: 'Desarrollador Senior',
-            createdAt: '2023-03-10'
-        },
-        {
-            id: 4,
-            username: 'amartinez',
-            role: 'Desarrollador',
-            createdAt: '2023-04-05'
-        },
-        {
-            id: 5,
-            username: 'crodriguez',
-            role: 'Diseñador UX/UI',
-            createdAt: '2023-05-12'
-        },
-        {
-            id: 6,
-            username: 'slopez',
-            role: 'Analista de Datos',
-            createdAt: '2023-06-18'
-        },
-        {
-            id: 7,
-            username: 'lhernandez',
-            role: 'QA Tester',
-            createdAt: '2023-07-22'
-        },
-        {
-            id: 8,
-            username: 'egomez',
-            role: 'Soporte Técnico',
-            createdAt: '2023-08-30'
-        },
-        {
-            id: 9,
-            username: 'psanchez',
-            role: 'Marketing Digital',
-            createdAt: '2023-09-05'
-        },
-        {
-            id: 10,
-            username: 'idiaz',
-            role: 'Recursos Humanos',
-            createdAt: '2023-10-15'
-        }
-    ];
+    const [listUser, setListUser] = useState([])
+    const navigate = useNavigate()
 
+    const getUsers = async() => {
+      const {status, data} = await apiRequest({
+            method: "GET",
+            path: 'users'
+        })
+    setListUser(status === 200 ? data : [])
+    }
+    useEffect(() => {
+      getUsers()
+    }, []);
+    const handleDelete = async (user) => {
+        try {
+            const { status } = await apiRequest({
+                method: 'DELETE',
+                path: `users/${user.id}`
+            });
+            
+            if (status === 200) {
+                
+                await getUsers();
+            }
+        } catch (error) {
+            console.error("Error al eliminar usuario:", error);
+        }
+    };
+
+
+    const handleEdit = (id) => {
+     navigate(`/users/${id}`)
+    }
     const actions = [
         {
             icon: Edit,
             label: 'Editar',
-            onClick: (employee) => console.log('Editar empleado:', employee)
+            onClick: (user) => handleEdit(user.id)
         },
         {
             icon: Trash,
             label: 'Eliminar',
-            onClick: (employee) => console.log('Eliminar empleado:', employee)
+            onClick: (user) => handleDelete(user)
         }
     ];
     const breadcrumbItems = [
@@ -88,10 +62,12 @@ export const UserPage = () => {
         <Table
             title="Gestión de Usuarios"
             columns={columnsUser}
-            data={usersData}
+            data={listUser}
             actions={actions}
-            onAddClick={() => console.log('Agregar nuevo usuario')}
+            onAddClick={() => navigate('/users/add')}
             addButtonText="Nuevo Usuario"
             itemsPerPage={6}
-        /></div>);
+        />
+        
+        </div>);
 }
