@@ -1,29 +1,35 @@
-"use client"
+"use client" // Indica que este componente debe ejecutarse en el cliente (por ejemplo en Next.js)
 
+// Importación de hooks y utilidades necesarias
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { columsInventario } from "../../../confiTable"
-import { Edit, Table, Trash } from "../../ui"
-import apiRequest from "../../helpers/ApiRequest"
-import { DeleteProducto } from "./DeleteProducto"
-import { ProductSearch } from "./ProductSearch"
+import { columsInventario } from "../../../confiTable" // Columnas de la tabla de inventario
+import { Edit, Table, Trash } from "../../ui" // Iconos y componente de tabla
+import apiRequest from "../../helpers/ApiRequest" // Función para hacer peticiones a la API
+import { DeleteProducto } from "./DeleteProducto" // Componente para confirmar eliminación
+import { ProductSearch } from "./ProductSearch" // Componente para búsqueda de productos
 
+// Componente principal de la página de productos/inventario
 export const ProductsPage = () => {
-  const navigate = useNavigate()
-  const [listProducts, setListProducts] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [productToDelete, setProductToDelete] = useState(null)
-  const [isSearching, setIsSearching] = useState(false)
-  const [currentSearchTerm, setCurrentSearchTerm] = useState("")
+  const navigate = useNavigate() // Hook para navegación programática
 
-  // Función para obtener productos (con o sin búsqueda)
+  const [listProducts, setListProducts] = useState([]) // Lista de productos
+  const [isLoading, setIsLoading] = useState(false) // Estado de carga
+  const [error, setError] = useState(null) // Estado de error
+  const [productToDelete, setProductToDelete] = useState(null) // Producto que se quiere eliminar
+  const [isSearching, setIsSearching] = useState(false) // Si se está haciendo una búsqueda
+  const [currentSearchTerm, setCurrentSearchTerm] = useState("") // Término de búsqueda actual
+
+  // Función para obtener los productos desde la API (puede incluir búsqueda)
   const getproducts = async (search = "") => {
     setIsLoading(true)
     setError(null)
 
     try {
-      const endpoint = search ? `products/search?name=${encodeURIComponent(search)}` : `products?page=1&limit=10`
+      // Si hay búsqueda, usa el endpoint de búsqueda; si no, lista general paginada
+      const endpoint = search
+        ? `products/search?name=${encodeURIComponent(search)}`
+        : `products?page=1&limit=10`
 
       const response = await apiRequest({
         method: "GET",
@@ -33,7 +39,7 @@ export const ProductsPage = () => {
       if (response.status === 200) {
         const data = response.data
 
-        // Procesamiento de datos para asegurar que tenemos un array
+        // Detecta la estructura de la data y arma un array de productos
         if (Array.isArray(data)) {
           setListProducts(data)
         } else if (data && typeof data === "object") {
@@ -43,6 +49,7 @@ export const ProductsPage = () => {
           setListProducts([])
         }
       } else {
+        // Error de respuesta (no 200)
         setListProducts([])
         setError(`Error al obtener productos. Código: ${response.status}`)
       }
@@ -56,42 +63,50 @@ export const ProductsPage = () => {
     }
   }
 
+  // Al montar el componente, se hace la carga inicial de productos
   useEffect(() => {
     getproducts()
   }, [])
 
+  // Cuando el usuario busca algo
   const handleSearch = (searchTerm) => {
     setIsSearching(true)
     setCurrentSearchTerm(searchTerm)
     getproducts(searchTerm)
   }
 
+  // Cuando el usuario presiona "Editar"
   const handleEdit = (id) => {
     navigate(`/products/edit/${id}`)
   }
 
+  // Cuando el usuario presiona "Eliminar"
   const handleDelete = (product) => {
     setProductToDelete(product)
   }
 
+  // Cuando el usuario cancela la eliminación
   const handleCancelDelete = () => {
     setProductToDelete(null)
   }
 
+  // Después de eliminar exitosamente
   const handleSuccessDelete = () => {
-    getproducts(currentSearchTerm)
+    getproducts(currentSearchTerm) // Se vuelve a cargar la lista actual
     setProductToDelete(null)
   }
 
+  // Cuando el usuario presiona "Agregar Inventario"
   const handleAddProduct = () => {
     navigate("/products/create")
   }
 
+  // Cuando el usuario presiona "Stock"
   const handleManageStock = (id) => {
     navigate(`/products/stock/${id}`)
   }
 
-  // Configuración de acciones para la tabla
+  // Acciones que tendrá cada fila en la tabla
   const actions = [
     {
       icon: Edit,
@@ -110,12 +125,16 @@ export const ProductsPage = () => {
     },
   ]
 
+  // Render de la interfaz
   return (
     <div>
+      {/* Componente de búsqueda */}
       <ProductSearch onSearch={handleSearch} isSearching={isSearching} standalone={false} />
 
+      {/* Mostrar error si existe */}
       {error && <div className="error-message mb-4">{error}</div>}
 
+      {/* Mostrar loader o tabla */}
       {isLoading ? (
         <div>Cargando productos...</div>
       ) : (
@@ -129,6 +148,7 @@ export const ProductsPage = () => {
         />
       )}
 
+      {/* Modal para confirmar eliminación de producto */}
       {productToDelete && (
         <DeleteProducto
           productId={productToDelete.id}
@@ -140,4 +160,3 @@ export const ProductsPage = () => {
     </div>
   )
 }
-

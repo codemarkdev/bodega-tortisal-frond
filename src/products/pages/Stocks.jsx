@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import apiRequest from "../../helpers/ApiRequest"
-import { Alert } from "../../ui"
+import { Alert, Input, Button, Breadcrumb, FormField } from "../../ui"
 
 export const Stocks = () => {
   const { id } = useParams()
@@ -113,16 +113,23 @@ export const Stocks = () => {
       <div className="p-6">
         <Alert type="error" message="No se pudo encontrar el producto" />
         <div className="mt-4">
-          <button onClick={handleCancel} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md">
+          <Button variant="primary" onClick={handleCancel}>
             Volver a Productos
-          </button>
+          </Button>
         </div>
       </div>
     )
   }
 
+  // Configuración del Breadcrumb
+  const breadcrumbItems = [{ label: "Productos", href: "/products" }, { label: "Gestión de Stock" }]
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
+      <div className="mb-6">
+        <Breadcrumb items={breadcrumbItems} />
+      </div>
+
       <h1 className="text-2xl font-bold mb-6">Gestión de Stock</h1>
 
       {/* Información del producto */}
@@ -158,24 +165,19 @@ export const Stocks = () => {
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-lg font-semibold mb-4">Aumentar Stock</h2>
           <form onSubmit={handleIncreaseStock}>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Cantidad a Aumentar</label>
-              <input
+            <FormField>
+              <Input
+                label="Cantidad a Aumentar"
                 type="number"
                 value={increaseQuantity}
                 onChange={(e) => setIncreaseQuantity(e.target.value)}
                 min="1"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Ingrese cantidad"
               />
-            </div>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition duration-200"
-            >
+            </FormField>
+            <Button type="submit" variant="primary" disabled={isSubmitting} className="w-full">
               {isSubmitting ? "Procesando..." : "Aumentar Stock"}
-            </button>
+            </Button>
           </form>
         </div>
 
@@ -183,36 +185,33 @@ export const Stocks = () => {
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-lg font-semibold mb-4">Disminuir Stock</h2>
           <form onSubmit={handleDecreaseStock}>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Cantidad a Disminuir</label>
-              <input
+            <FormField>
+              <Input
+                label="Cantidad a Disminuir"
                 type="number"
                 value={decreaseQuantity}
                 onChange={(e) => setDecreaseQuantity(e.target.value)}
                 min="1"
                 max={product ? product.quantity : 0}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Ingrese cantidad"
               />
-            </div>
-            <button
+            </FormField>
+            <Button
               type="submit"
+              variant="danger"
               disabled={isSubmitting || (product && product.quantity <= 0)}
-              className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition duration-200"
+              className="w-full"
             >
               {isSubmitting ? "Procesando..." : "Disminuir Stock"}
-            </button>
+            </Button>
           </form>
         </div>
       </div>
 
       <div className="mt-8 flex justify-end">
-        <button
-          onClick={handleCancel}
-          className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-md transition duration-200"
-        >
+        <Button variant="secondary" onClick={handleCancel}>
           Volver a Productos
-        </button>
+        </Button>
       </div>
     </div>
   )

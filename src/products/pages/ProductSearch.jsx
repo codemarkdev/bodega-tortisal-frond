@@ -3,7 +3,7 @@
 import { useState } from "react"
 import apiRequest from "../../helpers/ApiRequest"
 import { columsInventario } from "../../../confiTable"
-import { Table } from "../../ui"
+import { Table, Input, Button } from "../../ui"
 
 export const ProductSearch = ({ onSearch, isSearching: externalIsSearching, standalone = true }) => {
   const [searchTerm, setSearchTerm] = useState("")
@@ -81,31 +81,22 @@ export const ProductSearch = ({ onSearch, isSearching: externalIsSearching, stan
     <div className="mb-6 p-4 bg-white shadow-sm rounded-lg">
       <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-3">
         <div className="flex-grow">
-          <input
+          <Input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar productos por nombre..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            error={error}
           />
-          {error && <div className="mt-1 text-red-600 text-sm">{error}</div>}
         </div>
         <div className="flex gap-2">
-          <button
-            type="submit"
-            disabled={effectiveIsSearching}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md shadow-sm transition duration-200"
-          >
+          <Button type="submit" variant="primary" disabled={effectiveIsSearching}>
             {effectiveIsSearching ? "Buscando..." : "Buscar"}
-          </button>
+          </Button>
           {searchTerm && (
-            <button
-              type="button"
-              onClick={handleClear}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-md transition duration-200"
-            >
+            <Button type="button" variant="secondary" onClick={handleClear}>
               Limpiar
-            </button>
+            </Button>
           )}
         </div>
       </form>

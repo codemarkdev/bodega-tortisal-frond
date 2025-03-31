@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import apiRequest from "../../helpers/ApiRequest"
-import { Alert } from "../../ui"
+import { Alert, Input, Button, Breadcrumb, Form, FormField } from "../../ui"
 
 export const AddProdutcs = () => {
   const navigate = useNavigate()
@@ -63,102 +63,91 @@ export const AddProdutcs = () => {
     navigate("/products")
   }
 
+  // Configuración del Breadcrumb
+  const breadcrumbItems = [{ label: "Productos", href: "/products" }, { label: "Agregar Producto" }]
+
   return (
-    <div className="p-6 max-w-2xl mx-auto bg-white shadow-md rounded-lg">
-      <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Agregar Nuevo Producto</h1>
+    <div className="p-6 max-w-2xl mx-auto">
+      <div className="mb-6">
+        <Breadcrumb items={breadcrumbItems} />
+      </div>
 
       {error && <Alert type="error" message={error} className="mb-4" />}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="form-group">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Nombre del Producto</label>
-          <input
+      <Form onSubmit={handleSubmit} title="Agregar Nuevo Producto" submitText="Guardar Producto">
+        <FormField>
+          <Input
+            label="Nombre del Producto"
             type="text"
             name="name"
             value={formData.name}
             onChange={handleChange}
             required
             placeholder="Ej: Bolsa de Cemento 42.5 Kg"
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
-        </div>
+        </FormField>
 
-        <div className="form-group">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
-          <input
+        <FormField>
+          <Input
+            label="Descripción"
             type="text"
             name="description"
             value={formData.description}
             onChange={handleChange}
             required
             placeholder="Ej: Bolsa de cemento 42.5 Kg blanca"
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
-        </div>
+        </FormField>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="form-group">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Precio de Compra</label>
-            <input
-              type="number"
-              name="purchase_price"
-              value={formData.purchase_price}
-              onChange={handleChange}
-              required
-              step="0.01"
-              min="0"
-              placeholder="Ej: 29.5"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Cantidad</label>
-            <input
-              type="number"
-              name="quantity"
-              value={formData.quantity}
-              onChange={handleChange}
-              required
-              min="0"
-              placeholder="Ej: 30"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            name="is_consumable"
-            checked={formData.is_consumable}
+        <FormField>
+          <Input
+            label="Precio de Compra"
+            type="number"
+            name="purchase_price"
+            value={formData.purchase_price}
             onChange={handleChange}
-            id="is_consumable"
-            className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            required
+            step="0.01"
+            min="0"
+            placeholder="Ej: 29.5"
           />
-          <label htmlFor="is_consumable" className="ml-3 text-sm font-medium text-gray-700">
-            Es consumible
-          </label>
-        </div>
+        </FormField>
 
-        <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200 mt-6">
-          <button
-            type="button"
-            onClick={handleCancel}
-            disabled={isSubmitting}
-            className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-md transition duration-200"
-          >
+        <FormField>
+          <Input
+            label="Cantidad"
+            type="number"
+            name="quantity"
+            value={formData.quantity}
+            onChange={handleChange}
+            required
+            min="0"
+            placeholder="Ej: 30"
+          />
+        </FormField>
+
+        <FormField>
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="is_consumable"
+              checked={formData.is_consumable}
+              onChange={handleChange}
+              id="is_consumable"
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="is_consumable" className="ml-2 text-sm text-gray-700">
+              Es consumible
+            </label>
+          </div>
+        </FormField>
+
+        <div className="flex justify-end space-x-3 mt-6">
+          <Button variant="secondary" onClick={handleCancel} disabled={isSubmitting}>
             Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md shadow-sm transition duration-200"
-          >
-            {isSubmitting ? "Guardando..." : "Guardar Producto"}
-          </button>
+          </Button>
         </div>
-      </form>
+      </Form>
     </div>
   )
 }
