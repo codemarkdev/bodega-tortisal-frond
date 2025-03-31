@@ -1,4 +1,5 @@
 import React from 'react';
+
 const columnsUser = [
   {
     key: 'id',
@@ -115,7 +116,21 @@ const toolsIssuedColumns = [
   }
 ];
 
+const columsInventario = [
+  { key: 'id', title: 'ID' },
+  { key: 'name', title: 'Producto' },
+  { key: 'purchase_price', title: 'Precio' },
+  { key: 'quantity', title: 'cantidad' },
+  {
+    key: 'is_consumable',
+    title: 'Consumibles',
+    render: (item) => (
+      <span className={`font-mono ${item.is_consumable ? 'text-green-500': 'text-red-500'}`}>
+        {item.is_consumable ? 'Sí': 'No'}
+      </span>
+    )
+  }
+];
 
 
-
-export {columnsEmployees, columnsUser, toolsIssuedColumns}
+export {columnsEmployees, columnsUser, toolsIssuedColumns, columsInventario };
