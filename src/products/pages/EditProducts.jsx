@@ -1,287 +1,214 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Alert, Breadcrumb, Form, Input } from "../../ui";
-import apiRequest from "../../helpers/ApiRequest";
+"use client"
+
+import { useState, useEffect } from "react"
+import { useNavigate, useParams } from "react-router-dom"
+import apiRequest from "../../helpers/ApiRequest"
+import { Alert } from "../../ui"
 
 export const EditProducts = () => {
-    const { id } = useParams();
-    const navigate = useNavigate();
-    const [product, setProduct] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [formValues, setFormValues] = useState({
-        name: "",
-        description: "",
-        purchase_price: 0,
-        quantity: 0,
-        is_consumable: false
-    });
-    const [formErrors, setFormErrors] = useState({});
-    const [alert, setAlert] = useState({
-        show: false,
-        msg: '',
-        type: 'error'
-    });
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const [product, setProduct] = useState({
+    name: "",
+    description: "",
+    purchase_price: "",
+    quantity: "",
+    is_consumable: false,
+  })
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState(null)
 
-    // Validación del formulario
-    const validateForm = () => {
-        const errors = {};
-        if (!formValues.name?.trim()) {
-            errors.name = "El nombre del producto es requerido.";
+  useEffect(() => {
+    const fetchProduct = async () => {
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        const response = await apiRequest({
+          method: "GET",
+          path: `products/${id}`,
+        })
+
+        if (response.status === 200) {
+          setProduct({
+            name: response.data.name || "",
+            description: response.data.description || "",
+            purchase_price: response.data.purchase_price || "",
+            quantity: response.data.quantity || "",
+            is_consumable: response.data.is_consumable || false,
+          })
+        } else {
+          setError(`Error al obtener el producto. Código: ${response.status}`)
         }
-        if (formValues.purchase_price <= 0) {
-            errors.purchase_price = "El precio de compra debe ser mayor que cero.";
-        }
-        if (formValues.quantity < 0) {
-            errors.quantity = "La cantidad no puede ser negativa.";
-        }
-        setFormErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
+      } catch (error) {
+        console.error("Error al obtener el producto:", error)
+        setError("Error al conectar con el servidor")
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-    // Obtener producto por ID
-    const getProductById = async (id) => {
-        setIsLoading(true);
-        try {
-            const response = await apiRequest({
-                method: 'GET',
-                path: `products/${id}`,
-            });
-            
-            console.log("Respuesta de la API (GET):", response);
-            
-            if (response.status === 200) {
-                const data = response.data;
-                setProduct(data);
-                
-                // Actualizar los valores del formulario con los datos del producto
-                setFormValues({
-                    name: data.name || "",
-                    description: data.description || "",
-                    purchase_price: data.purchase_price || 0,
-                    quantity: data.quantity || 0,
-                    is_consumable: data.is_consumable || false
-                });
-            } else {
-                setAlert({
-                    show: true, 
-                    msg: `Error al obtener información del producto: ${response.status}`,
-                    type: 'error'
-                });
-            }
-        } catch (error) {
-            console.error("Error al obtener producto:", error);
-            setAlert({
-                show: true, 
-                msg: 'Error al conectar con el servidor.',
-                type: 'error'
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    fetchProduct()
+  }, [id])
 
-    // Cargar datos del producto al iniciar
-    useEffect(() => {
-        if (id) {
-            getProductById(id);
-        }
-    }, [id]);
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target
+    setProduct({
+      ...product,
+      [name]: type === "checkbox" ? checked : value,
+    })
+  }
 
-    // Manejar cambios en el formulario
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        
-        // Para checkboxes, usamos el valor de "checked" en lugar de "value"
-        const newValue = type === 'checkbox' ? checked : value;
-        
-        setFormValues(prev => ({
-            ...prev,
-            [name]: newValue
-        }));
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setError(null)
 
-    // Enviar el formulario
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        
-        if (!validateForm()) {
-            return; // Detener si hay errores
-        }
-        
-        setIsLoading(true);
-        
-        try {
-            // Convertir valores numéricos
-            const dataToSend = {
-                ...formValues,
-                purchase_price: Number(formValues.purchase_price),
-                quantity: Number(formValues.quantity)
-            };
-            
-            console.log("Enviando datos:", dataToSend);
-            
-            const response = await apiRequest({
-                method: 'PATCH',
-                path: `products/${id}`,
-                data: dataToSend
-            });
-            
-            console.log("Respuesta de la API (PATCH):", response);
-            
-            if (response.status === 200) {
-                setAlert({
-                    show: true, 
-                    msg: 'Producto actualizado con éxito.',
-                    type: 'success'
-                });
-                
-                // Redirigir después de 2 segundos
-                setTimeout(() => {
-                    navigate("/products");
-                }, 2000);
-            } else {
-                setAlert({
-                    show: true, 
-                    msg: `Error al actualizar el producto: ${response.status}`,
-                    type: 'error'
-                });
-            }
-        } catch (error) {
-            console.error("Error al actualizar producto:", error);
-            setAlert({
-                show: true, 
-                msg: 'Error al conectar con el servidor.',
-                type: 'error'
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // Convertir valores numéricos
+    const productData = {
+      ...product,
+      purchase_price: Number.parseFloat(product.purchase_price),
+      quantity: Number.parseInt(product.quantity, 10),
+    }
 
-    // Cancelar y volver a la lista
-    const handleCancel = () => {
-        navigate("/products");
-    };
+    try {
+      const response = await apiRequest({
+        method: "PATCH",
+        path: `products/${id}`,
+        data: productData,
+      })
 
-    return (
-        <div className="flex flex-col px-2 py-4">
-            <Breadcrumb items={[
-                { label: "Productos", href: "/products" }, 
-                { label: "Editar producto", href: '' }
-            ]} />
+      if (response.status === 200) {
+        navigate("/products")
+      } else {
+        setError(`Error al actualizar el producto. Código: ${response.status}`)
+      }
+    } catch (error) {
+      console.error("Error al actualizar el producto:", error)
+      setError("Error al conectar con el servidor")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
-            <div className="flex flex-col items-center justify-center">
-                {isLoading && <div className="text-center py-4">Cargando información del producto...</div>}
-                
-                {alert.show && (
-                    <div className="mt-4 w-full max-w-md">
-                        <Alert
-                            message={alert.msg}
-                            type={alert.type}
-                            onClose={() => setAlert({
-                                show: false,
-                                msg: '',
-                                type: 'error'
-                            })}
-                        />
-                    </div>
-                )}
-                
-                {!isLoading && product ? (
-                    <Form
-                        onSubmit={handleSubmit}
-                        submitText="Guardar Cambios"
-                        className="min-w-80 w-md mt-5"
-                    >
-                        <div className="mb-4">
-                            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
-                                Nombre del producto
-                            </label>
-                            <Input
-                                id="name"
-                                name="name"
-                                value={formValues.name}
-                                onChange={handleChange}
-                            />
-                            {formErrors.name && <p className="text-red-500 text-sm">{formErrors.name}</p>}
-                        </div>
-                        
-                        <div className="mb-4">
-                            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">
-                                Descripción
-                            </label>
-                            <Input
-                                id="description"
-                                name="description"
-                                value={formValues.description}
-                                onChange={handleChange}
-                            />
-                        </div>
-                        
-                        <div className="mb-4">
-                            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="purchase_price">
-                                Precio de compra
-                            </label>
-                            <Input
-                                id="purchase_price"
-                                name="purchase_price"
-                                type="number"
-                                step="0.01"
-                                value={formValues.purchase_price}
-                                onChange={handleChange}
-                            />
-                            {formErrors.purchase_price && <p className="text-red-500 text-sm">{formErrors.purchase_price}</p>}
-                        </div>
-                        
-                        <div className="mb-4">
-                            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="quantity">
-                                Cantidad
-                            </label>
-                            <Input
-                                id="quantity"
-                                name="quantity"
-                                type="number"
-                                value={formValues.quantity}
-                                onChange={handleChange}
-                            />
-                            {formErrors.quantity && <p className="text-red-500 text-sm">{formErrors.quantity}</p>}
-                        </div>
-                        
-                        <div className="mb-6">
-                            <label className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    name="is_consumable"
-                                    checked={formValues.is_consumable}
-                                    onChange={handleChange}
-                                    className="mr-2"
-                                />
-                                <span className="text-gray-700 text-sm font-bold">Es consumible</span>
-                            </label>
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                            <button
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                                type="submit"
-                                disabled={isLoading}
-                            >
-                                {isLoading ? "Guardando..." : "Guardar Cambios"}
-                            </button>
-                            <button
-                                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                                type="button"
-                                onClick={handleCancel}
-                                disabled={isLoading}
-                            >
-                                Cancelar
-                            </button>
-                        </div>
-                    </Form>
-                ) : (
-                    !isLoading && <Alert type="error" message="No existe producto con esos datos." />
-                )}
-            </div>
+  const handleCancel = () => {
+    navigate("/products")
+  }
+
+  if (isLoading) {
+    return <div className="p-6">Cargando información del producto...</div>
+  }
+
+  return (
+    <div className="p-6 max-w-2xl mx-auto">
+      <div className="mb-6">
+        <nav className="flex" aria-label="Breadcrumb">
+          <ol className="inline-flex items-center space-x-1 md:space-x-3">
+            <li className="inline-flex items-center">
+              <a href="/products" className="text-blue-600 hover:text-blue-800">
+                Productos
+              </a>
+            </li>
+            <li>
+              <div className="flex items-center">
+                <span className="mx-2 text-gray-400">/</span>
+                <span className="text-gray-500">Editar producto</span>
+              </div>
+            </li>
+          </ol>
+        </nav>
+      </div>
+
+      {error && <Alert type="error" message={error} className="mb-4" />}
+
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Nombre del producto</label>
+          <input
+            type="text"
+            name="name"
+            value={product.name}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
         </div>
-    );
-};
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+          <input
+            type="text"
+            name="description"
+            value={product.description}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Precio de compra</label>
+          <input
+            type="number"
+            name="purchase_price"
+            value={product.purchase_price}
+            onChange={handleChange}
+            required
+            step="0.01"
+            min="0"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Cantidad</label>
+          <input
+            type="number"
+            name="quantity"
+            value={product.quantity}
+            onChange={handleChange}
+            required
+            min="0"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            name="is_consumable"
+            checked={product.is_consumable}
+            onChange={handleChange}
+            id="is_consumable"
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <label htmlFor="is_consumable" className="ml-2 text-sm text-gray-700">
+            Es consumible
+          </label>
+        </div>
+
+        <div className="flex justify-end space-x-3 pt-4">
+          <button
+            type="button"
+            onClick={handleCancel}
+            disabled={isSubmitting}
+            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-md transition duration-200"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md shadow-sm transition duration-200"
+          >
+            Guardar Cambios
+          </button>
+        </div>
+
+        {/* Eliminamos el botón duplicado que aparecía aquí */}
+      </form>
+    </div>
+  )
+}
+
