@@ -100,6 +100,7 @@ export const AddEmployee = () => {
             value={formData.dui}
             onChange={handleChange}
             required
+            mask="########-#"
             placeholder="Ej: 00000000-0"
           />
         </FormField>

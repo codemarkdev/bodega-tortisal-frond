@@ -21,7 +21,7 @@ export const EmployeesPage = () => {
     try {
       const response = await apiRequest({
         method: "GET",
-        path: "employees?page=1&limit=10",
+        path: "employees?page=1&limit=30",
       })
 
       if (response.status === 200) {

@@ -57,7 +57,7 @@ console.log('value', values)
     const getEmployee = async () => {
         const { data, status } = await apiRequest({
             method: 'GET',
-            path: "employees?page=1&limit=10"
+            path: "employees?page=1&limit=1000"
         });
         if (status === 200) {
             const formatSelectEmployee = data.data.map((item) => ({ 

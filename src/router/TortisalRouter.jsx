@@ -18,8 +18,8 @@ import { UserAddPage } from "../users/pages/UserAddPage"
 import { ShiftsPage } from "../shifts/pages/ShiftsPage";
 import { ShiftsAddPage } from "../shifts/pages/ShiftsAddPage";
 import { ShiftsHistory } from "../shifts/pages/ShiftsHistory";
-import { ToolsIssuedPage } from "../tools-issued/pages/ToolsIssuedPage"
 import { ToolsIssuedDetails } from "../tools-issued/pages/ToolsIssuedDetails"
+import { ReportPage } from "../report/pages/ReportPage"
 export const TortisalRouter = () => {
   const { logged } = useContext(AuthContext)
 
@@ -49,15 +49,22 @@ export const TortisalRouter = () => {
         <Route path="users/:id" element={<EditUserPage />}></Route>
         <Route path="users/add" element={<UserAddPage />}></Route>
 
-      {/* Rutas de herramientas entregadas */}
-      <Route path="tools-issued" element={<ToolsIssuedPage />}></Route>
+        {/* Rutas de herramientas entregadas */}
+        <Route path="tools-issued" element={<ToolsIssuedPage />}></Route>
         <Route path="tools-issued/details/:employeeId/:shiftId" element={<ToolsIssuedDetails />}></Route>
         <Route path="tools-issued/return/:shiftId/:employeeId" element={<ToolsIssuedPage />}></Route>
 
-
+        {/* Rutas de turnos */}
         <Route path="shifts" element={<ShiftsPage />}></Route>
         <Route path="shifts/:id" element={<ShiftsHistory />}></Route>
         <Route path="shifts/add" element={<ShiftsAddPage />}></Route>
+
+        {/* Rutas de turnos */}
+        <Route path="report" element={<ReportPage />}></Route>
+
+
+
+
       </Routes>
     </>
   )

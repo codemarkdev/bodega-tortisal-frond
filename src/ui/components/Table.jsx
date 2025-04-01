@@ -81,8 +81,9 @@ export const Table = ({
       </div>
 
       {/* Tabla */}
-      <div className="overflow-hidden border-b border-gray-200 rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
+      <div className="overflow-x-auto border-b border-gray-200 rounded-lg 
+  scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+        <table className="min-w-full divide-y divide-gray-200 ">
           <thead>
             <tr>
               {columns.map((column) => (

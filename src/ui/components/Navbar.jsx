@@ -43,6 +43,7 @@ export const Navbar = () => {
                     <NavLink to="/users" className={(({ isActive }) => `nav-item nav-link text-sm/6 font-semibold text-gray-900 ${isActive ? 'active' : ''}`)}>Usuarios</NavLink>
                     <NavLink to="/tools-issued" className={(({ isActive }) => `nav-item nav-link text-sm/6 font-semibold text-gray-900 ${isActive ? 'active' : ''}`)}>Herramientas emitidas</NavLink>
                     <NavLink to="/shifts" className={(({ isActive }) => `nav-item nav-link text-sm/6 font-semibold text-gray-900 ${isActive ? 'active' : ''}`)}>Turnos</NavLink>
+                    <NavLink to="/report" className={(({ isActive }) => `nav-item nav-link text-sm/6 font-semibold text-gray-900 ${isActive ? 'active' : ''}`)}>Reportes</NavLink>
                 </div>
                 <div className="hidden lg:flex lg:flex-1 lg:justify-end">
                     <button onClick={handleLogout} className="text-sm/6 font-semibold text-gray-900">Cerrar sesión <span aria-hidden="true">&rarr;</span></button>
@@ -73,6 +74,7 @@ export const Navbar = () => {
                                     <NavLink to="/users" className={(({ isActive }) => `-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 ${isActive ? 'active' : ''}`)}>Usuarios</NavLink>
                                     <NavLink to="/tools-issued" className={(({ isActive }) => `-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 ${isActive ? 'active' : ''}`)}>Herramientas emitidas</NavLink>
                                     <NavLink to="/shifts" className={(({ isActive }) => `-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 ${isActive ? 'active' : ''}`)}>Turnos</NavLink>
+                                    <NavLink to="/report" className={(({ isActive }) => `-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 ${isActive ? 'active' : ''}`)}>Reportes</NavLink>
 
                                 </div>
                                 <div className="py-6">

@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Alert, Button, Input, FormField } from "../../ui"
 import apiRequest from "../../helpers/ApiRequest"
@@ -26,7 +24,7 @@ export const ReturnToolsModal = ({ shiftId, employeeId, employeeName, onClose, o
         if (response.status === 200) {
           setToolsData(response.data)
 
-          // Inicializar los items a devolver
+
           const initialReturnItems = response.data.tools
             .filter((tool) => {
               // Incluir herramientas pendientes o parcialmente devueltas
@@ -64,16 +62,26 @@ export const ReturnToolsModal = ({ shiftId, employeeId, employeeName, onClose, o
   }, [shiftId, employeeId])
 
   const handleQuantityChange = (index, value) => {
-    const newValue = Number.parseInt(value) || 0
-    const newReturnItems = [...returnItems]
-
-    // Asegurar que no se devuelva más de lo prestado
-    const maxReturn = newReturnItems[index].maxReturn
-    newReturnItems[index].quantityReturned = Math.min(newValue, maxReturn)
-
-    setReturnItems(newReturnItems)
-  }
-
+    // Eliminar todos los caracteres no numéricos
+    const numericValue = value.replace(/[^0-9]/g, '');
+    
+    // Si el valor está vacío, establecerlo como 0
+    if (numericValue === '') {
+      const newReturnItems = [...returnItems];
+      newReturnItems[index].quantityReturned = 0;
+      setReturnItems(newReturnItems);
+      return;
+    }
+    
+    // Convertir a entero
+    const intValue = parseInt(numericValue, 10);
+    
+    // Limitar al máximo permitido
+    const newReturnItems = [...returnItems];
+    newReturnItems[index].quantityReturned = Math.min(intValue, newReturnItems[index].maxReturn);
+    
+    setReturnItems(newReturnItems);
+  };
   // Modificar la función handleSubmit para incluir información sobre herramientas faltantes
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -104,7 +112,6 @@ export const ReturnToolsModal = ({ shiftId, employeeId, employeeName, onClose, o
         path: `tools-issued/return/${shiftId}`,
         data: {
           tools: toolsToReturn,
-          // Incluir un indicador para que el backend sepa que debe calcular faltantes
           calculateMissing: true,
         },
       })
@@ -112,7 +119,7 @@ export const ReturnToolsModal = ({ shiftId, employeeId, employeeName, onClose, o
       if (response.status === 200 || response.status === 201) {
         onSuccess()
       } else {
-        setError(`Error al registrar devolución: ${response.status}`)
+        setError(`Error al registrar devolución: ${response.data?.message}`)
       }
     } catch (error) {
       console.error("Error al registrar devolución:", error)
@@ -151,7 +158,7 @@ export const ReturnToolsModal = ({ shiftId, employeeId, employeeName, onClose, o
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">Registrar Devolución de Herramientas</h2>
+        <h2 className="text-xl font-bold mb-4">Registrar Devolución dfa de Herramientas</h2>
 
         {error && <Alert type="error" message={error} className="mb-4" />}
 
@@ -213,7 +220,7 @@ export const ReturnToolsModal = ({ shiftId, employeeId, employeeName, onClose, o
                       <Input
                         label="Cantidad a Devolver"
                         type="number"
-                        value={item.quantityReturned || 0}
+                        value={item.quantityReturned === 0 ? 0 : item.quantityReturned.toString()}
                         onChange={(e) => handleQuantityChange(index, e.target.value)}
                         min="0"
                         max={item.maxReturn}

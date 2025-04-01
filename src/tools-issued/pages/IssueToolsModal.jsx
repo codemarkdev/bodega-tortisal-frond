@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Alert, Button, Input, FormField } from "../../ui"
 import apiRequest from "../../helpers/ApiRequest"
@@ -11,12 +9,9 @@ export const IssueToolsModal = ({ onClose, onSuccess }) => {
   const [products, setProducts] = useState([])
   const [selectedItems, setSelectedItems] = useState([{ productId: "", quantity: 1 }])
   const [employeeId, setEmployeeId] = useState("")
-  const [isCreatingShift, setIsCreatingShift] = useState(false)
-  const [shiftCreated, setShiftCreated] = useState(null)
-  const [employeeShifts, setEmployeeShifts] = useState({})
   const [isLoadingInitialData, setIsLoadingInitialData] = useState(true)
+  const [currentShift, setCurrentShift] = useState(null)
 
-  // Cargar empleados y productos al montar el componente
   useEffect(() => {
     const fetchData = async () => {
       setIsLoadingInitialData(true)
@@ -26,18 +21,14 @@ export const IssueToolsModal = ({ onClose, onSuccess }) => {
         // Obtener empleados
         const employeesResponse = await apiRequest({
           method: "GET",
-          path: "employees",
+          path: "employees?page=1&limit=1000",
         })
-
-        console.log("Respuesta de empleados:", employeesResponse)
 
         // Obtener productos
         const productsResponse = await apiRequest({
           method: "GET",
           path: "products",
         })
-
-        console.log("Respuesta de productos:", productsResponse)
 
         // Procesar empleados
         if (employeesResponse.status === 200) {
@@ -54,7 +45,6 @@ export const IssueToolsModal = ({ onClose, onSuccess }) => {
               []
           }
 
-          console.log("Empleados procesados:", employeesData)
           setEmployees(employeesData)
         } else {
           console.error("Error al obtener empleados:", employeesResponse.status)
@@ -83,49 +73,6 @@ export const IssueToolsModal = ({ onClose, onSuccess }) => {
           setError(`Error al cargar productos: ${productsResponse.status}`)
         }
 
-        // Obtener todos los turnos para verificar límites por empleado
-        const shiftsResponse = await apiRequest({
-          method: "GET",
-          path: "shifts",
-        })
-
-        if (shiftsResponse.status === 200) {
-          // Procesar los turnos por empleado
-          let shiftsData = []
-
-          if (Array.isArray(shiftsResponse.data)) {
-            shiftsData = shiftsResponse.data
-          } else if (shiftsResponse.data && typeof shiftsResponse.data === "object") {
-            shiftsData =
-              shiftsResponse.data.items ||
-              shiftsResponse.data.shifts ||
-              shiftsResponse.data.results ||
-              shiftsResponse.data.data ||
-              []
-          }
-
-          const shiftsMap = {}
-
-          // Agrupar turnos por empleado y fecha
-          shiftsData.forEach((shift) => {
-            if (shift.employee && shift.employee.id) {
-              const employeeId = shift.employee.id
-              const shiftDate = shift.check_in_time.split(" ")[0] // Obtener solo la fecha (formato: DD-MM-YYYY)
-
-              if (!shiftsMap[employeeId]) {
-                shiftsMap[employeeId] = {}
-              }
-
-              if (!shiftsMap[employeeId][shiftDate]) {
-                shiftsMap[employeeId][shiftDate] = []
-              }
-
-              shiftsMap[employeeId][shiftDate].push(shift)
-            }
-          })
-
-          setEmployeeShifts(shiftsMap)
-        }
       } catch (error) {
         console.error("Error al cargar datos:", error)
         setError("Error al cargar empleados o productos. Por favor, intente nuevamente.")
@@ -136,6 +83,48 @@ export const IssueToolsModal = ({ onClose, onSuccess }) => {
 
     fetchData()
   }, [])
+
+  // Verificar el turno del empleado cuando cambia
+  useEffect(() => {
+    const checkEmployeeShift = async () => {
+console.log('depurar: ', employeeId, )
+      if (!employeeId) {
+        setCurrentShift(null)
+        return
+      }
+      console.log('depurar: ', )
+
+      setIsLoading(true)
+      try {
+        const response = await apiRequest({
+          method: "GET",
+          path: `shifts/employee/${employeeId}/today`,
+        })
+
+        if (response.status === 200 && response.data) {
+          setCurrentShift(response.data)
+          
+          // Si tiene check_out_time no null, mostrar error
+          if (response.data.check_out_time !== null) {
+            setError("Este empleado ya marcó su hora de salida. No se pueden asignar herramientas.")
+          } else {
+            setError(null)
+          }
+        } else {
+          setCurrentShift(null)
+          setError(null)
+        }
+      } catch (error) {
+        console.error("Error al verificar turno:", error)
+        setCurrentShift(null)
+        setError("Error al verificar el turno del empleado")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    checkEmployeeShift()
+  }, [employeeId])
 
   const handleAddItem = () => {
     setSelectedItems([...selectedItems, { productId: "", quantity: 1 }])
@@ -153,99 +142,19 @@ export const IssueToolsModal = ({ onClose, onSuccess }) => {
     setSelectedItems(newItems)
   }
 
-  const checkEmployeeShiftLimit = (employeeId) => {
-    // Verificar si el empleado ya tiene un turno hoy
-    if (!employeeId || !employeeShifts[employeeId]) {
-      return true // No tiene turnos registrados
-    }
-
-    const today = new Date()
-    const dd = String(today.getDate()).padStart(2, "0")
-    const mm = String(today.getMonth() + 1).padStart(2, "0") // Enero es 0
-    const yyyy = today.getFullYear()
-
-    const todayFormatted = `${dd}-${mm}-${yyyy}`
-
-    return !employeeShifts[employeeId][todayFormatted] || employeeShifts[employeeId][todayFormatted].length === 0
-  }
-
-  const handleCreateShift = async () => {
-    if (!employeeId) {
-      setError("Por favor seleccione un empleado primero")
-      return
-    }
-
-    // Verificar si el empleado ya tiene un turno hoy
-    if (!checkEmployeeShiftLimit(employeeId)) {
-      setError("Este empleado ya tiene un turno creado para hoy. Solo se permite un turno por día por empleado.")
-      return
-    }
-
-    setIsCreatingShift(true)
-    setError(null)
-
-    try {
-      console.log("Creando turno para empleado:", employeeId)
-
-      const response = await apiRequest({
-        method: "POST",
-        path: "shifts",
-        data: {
-          id_employee: Number.parseInt(employeeId),
-        },
-      })
-
-      console.log("Respuesta de creación de turno:", response)
-
-      if (response.status === 201) {
-        setShiftCreated(response.data)
-
-        // Actualizar el registro de turnos del empleado
-        const newShift = response.data
-        const shiftDate = newShift.check_in_time.split(" ")[0]
-
-        setEmployeeShifts((prev) => {
-          const updated = { ...prev }
-          if (!updated[employeeId]) {
-            updated[employeeId] = {}
-          }
-          if (!updated[employeeId][shiftDate]) {
-            updated[employeeId][shiftDate] = []
-          }
-          updated[employeeId][shiftDate].push(newShift)
-          return updated
-        })
-      } else {
-        setError(`Error al crear turno: ${response.status}`)
-      }
-    } catch (error) {
-      console.error("Error al crear turno:", error)
-
-      // Verificar si es un error 404 (posiblemente por límite de turno)
-      if (error.response && error.response.status === 404) {
-        setError("No se puede crear más de un turno por día para este empleado.")
-      } else {
-        setError("Error al conectar con el servidor")
-      }
-    } finally {
-      setIsCreatingShift(false)
-    }
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
 
-    // Validaciones
-    if (!shiftCreated) {
-      setError("Por favor cree un turno primero")
+    if (!employeeId) {
+      setError("Por favor seleccione un empleado")
       setIsLoading(false)
       return
     }
 
-    if (!employeeId) {
-      setError("Por favor seleccione un empleado")
+    if (!currentShift || currentShift.check_out_time !== null) {
+      setError("No se puede asignar herramientas. El empleado no tiene un turno activo.")
       setIsLoading(false)
       return
     }
@@ -257,7 +166,6 @@ export const IssueToolsModal = ({ onClose, onSuccess }) => {
       return
     }
 
-    // Preparar datos para enviar
     const products = selectedItems.map((item) => ({
       productId: Number.parseInt(item.productId),
       quantity: Number.parseInt(item.quantity),
@@ -265,24 +173,24 @@ export const IssueToolsModal = ({ onClose, onSuccess }) => {
 
     try {
       console.log("Enviando datos de asignación:", {
-        shiftId: shiftCreated.id,
+        shiftId: currentShift.id,
         products,
       })
 
       const response = await apiRequest({
         method: "POST",
-        path: `tools-issued/issue/${shiftCreated.id}`,
+        path: `tools-issued/issue/${currentShift.id}`,
         data: {
           products,
         },
       })
 
-      console.log("Respuesta de asignación:", response)
+
 
       if (response.status === 201 || response.status === 200) {
         onSuccess()
       } else {
-        setError(`Error al registrar préstamo: ${response.status}`)
+        setError(`Error al registrar préstamo: ${response.data?.message}`)
       }
     } catch (error) {
       console.error("Error al registrar préstamo:", error)
@@ -293,15 +201,7 @@ export const IssueToolsModal = ({ onClose, onSuccess }) => {
   }
 
   const handleEmployeeChange = (e) => {
-    const newEmployeeId = e.target.value
-    setEmployeeId(newEmployeeId)
-
-    // Si el empleado ya tiene un turno hoy, mostrar advertencia
-    if (newEmployeeId && !checkEmployeeShiftLimit(newEmployeeId)) {
-      setError("Este empleado ya tiene un turno creado para hoy. Solo se permite un turno por día por empleado.")
-    } else {
-      setError(null)
-    }
+    setEmployeeId(e.target.value)
   }
 
   return (
@@ -326,7 +226,7 @@ export const IssueToolsModal = ({ onClose, onSuccess }) => {
                   onChange={handleEmployeeChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
-                  disabled={isCreatingShift || shiftCreated}
+                  disabled={isLoading}
                 >
                   <option value="">Seleccione un empleado</option>
                   {employees.length > 0 ? (
@@ -345,23 +245,26 @@ export const IssueToolsModal = ({ onClose, onSuccess }) => {
               </FormField>
 
               <FormField>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Turno</label>
-                {!shiftCreated ? (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={handleCreateShift}
-                    disabled={!employeeId || isCreatingShift || (employeeId && !checkEmployeeShiftLimit(employeeId))}
-                    className="w-full"
-                  >
-                    {isCreatingShift ? "Creando turno..." : "Crear nuevo turno"}
-                  </Button>
-                ) : (
-                  <div className="p-2 bg-green-50 border border-green-200 rounded-md">
-                    <p className="text-sm text-green-700">
-                      Turno creado con ID: <span className="font-medium">{shiftCreated.id}</span>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Estado del Turno</label>
+                {currentShift ? (
+                  <div className={`p-2 border rounded-md ${
+                    currentShift.check_out_time === null 
+                      ? "bg-green-50 border-green-200 text-green-700" 
+                      : "bg-red-50 border-red-200 text-red-700"
+                  }`}>
+                    <p className="text-sm">
+                      {currentShift.check_out_time === null 
+                        ? "Turno activo (no ha marcado salida)" 
+                        : "Turno finalizado (ya marcó salida)"}
                     </p>
-                    <p className="text-xs text-green-600 mt-1">Fecha: {shiftCreated.check_in_time}</p>
+                    <p className="text-xs mt-1">
+                      ID: {currentShift.id} | Entrada: {currentShift.check_in_time} | 
+                      {currentShift.check_out_time && ` Salida: ${currentShift.check_out_time}`}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-600">
+                    No hay turno registrado hoy
                   </div>
                 )}
               </FormField>
@@ -378,6 +281,7 @@ export const IssueToolsModal = ({ onClose, onSuccess }) => {
                     onChange={(e) => handleItemChange(index, "productId", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
+                    disabled={!currentShift || currentShift.check_out_time !== null}
                   >
                     <option value="">Seleccione un producto</option>
                     {products.length > 0 ? (
@@ -403,12 +307,19 @@ export const IssueToolsModal = ({ onClose, onSuccess }) => {
                     onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
                     min="1"
                     required
+                    disabled={!currentShift || currentShift.check_out_time !== null}
                   />
                 </div>
 
                 <div className="flex items-end">
                   {selectedItems.length > 1 && (
-                    <Button type="button" variant="danger" onClick={() => handleRemoveItem(index)} className="mt-auto">
+                    <Button 
+                      type="button" 
+                      variant="danger" 
+                      onClick={() => handleRemoveItem(index)} 
+                      className="mt-auto"
+                      disabled={!currentShift || currentShift.check_out_time !== null}
+                    >
                       Eliminar
                     </Button>
                   )}
@@ -417,7 +328,12 @@ export const IssueToolsModal = ({ onClose, onSuccess }) => {
             ))}
 
             <div className="mb-6">
-              <Button type="button" variant="secondary" onClick={handleAddItem}>
+              <Button 
+                type="button" 
+                variant="secondary" 
+                onClick={handleAddItem}
+                disabled={!currentShift || currentShift.check_out_time !== null}
+              >
                 + Agregar Producto
               </Button>
             </div>
@@ -426,7 +342,11 @@ export const IssueToolsModal = ({ onClose, onSuccess }) => {
               <Button variant="secondary" onClick={onClose} disabled={isLoading}>
                 Cancelar
               </Button>
-              <Button type="submit" variant="primary" disabled={isLoading || !shiftCreated}>
+              <Button 
+                type="submit" 
+                variant="primary" 
+                disabled={isLoading || !currentShift || currentShift.check_out_time !== null}
+              >
                 {isLoading ? "Guardando..." : "Guardar Asignación"}
               </Button>
             </div>
@@ -436,4 +356,3 @@ export const IssueToolsModal = ({ onClose, onSuccess }) => {
     </div>
   )
 }
-

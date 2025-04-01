@@ -80,11 +80,7 @@ const columnsEmployees = [
 ]
 
 const toolsIssuedColumns = [
-  {
-    key: "id",
-    title: "ID",
-    width: 80,
-  },
+
   {
     key: "shift_info",
     title: "Turno (Fecha)",
