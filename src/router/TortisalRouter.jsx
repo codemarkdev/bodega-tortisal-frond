@@ -14,6 +14,7 @@ import { AddEmployee } from "../employees/pages/AddEmployee"
 import { EditEmployee } from "../employees/pages/EditEmployee"
 import { EmployeeDetail } from "../employees/pages/EmployeeDetail"
 import { ToolsIssuedPage } from "../tools-issued/pages/ToolsIssuedPage"
+import { ToolsIssuedDetails } from "../tools-issued/pages/ToolsIssuedDetails"
 import { UserPage } from "../users/pages/UserPage"
 import { EditUserPage } from "../users/pages/EditUserPage"
 import { UserAddPage } from "../users/pages/UserAddPage"
@@ -49,8 +50,8 @@ export const TortisalRouter = () => {
 
         {/* Rutas de herramientas entregadas */}
         <Route path="tools-issued" element={<ToolsIssuedPage />}></Route>
-
-        <Route path="shift" element={<ProductsPage />}></Route>
+        <Route path="tools-issued/details/:employeeId/:shiftId" element={<ToolsIssuedDetails />}></Route>
+        <Route path="tools-issued/return/:shiftId/:employeeId" element={<ToolsIssuedPage />}></Route>
       </Routes>
     </>
   )
