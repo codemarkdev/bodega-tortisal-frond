@@ -64,7 +64,7 @@ export const UserAddPage = () => {
                     onRegister();
                 });
             }}
-            submitText="Iniciar Sessión"
+            submitText="Nuevo usuario"
             className=" min-w-80 w-md"
         >
 

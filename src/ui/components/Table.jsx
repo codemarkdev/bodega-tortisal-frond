@@ -10,7 +10,8 @@ export const Table = ({
   actions,
   onAddClick,
   addButtonText = 'Add',
-  itemsPerPage = 5
+  itemsPerPage = 5,
+  isLoading = false 
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [confirmationState, setConfirmationState] = useState({
@@ -19,7 +20,7 @@ export const Table = ({
     action: null
   });
 
-  // Pagination calculations
+  // Paginación
   const totalPages = Math.ceil(data.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -30,14 +31,12 @@ export const Table = ({
 
   const handleActionClick = (item, action) => {
     if (action.icon === Trash) {
-   
       setConfirmationState({
         show: true,
         item,
         action
       });
     } else {
-  
       action.onClick(item);
     }
   };
@@ -71,7 +70,7 @@ export const Table = ({
         </div>
       )}
 
-      {/* Resto del componente Table... */}
+      {/* Header de la tabla */}
       <div className="flex items-center justify-between">
         {title && <h2 className="text-xl font-light text-gray-800">{title}</h2>}
         {onAddClick && (
@@ -84,7 +83,6 @@ export const Table = ({
       {/* Tabla */}
       <div className="overflow-hidden border-b border-gray-200 rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
-          {/* Cabeceras... */}
           <thead>
             <tr>
               {columns.map((column) => (
@@ -105,7 +103,16 @@ export const Table = ({
           
           {/* Cuerpo de la tabla */}
           <tbody className="bg-white divide-y divide-gray-200">
-            {paginatedData.length > 0 ? (
+            {isLoading ? ( // Mostrar el estado de carga si isLoading es true
+              <tr>
+                <td
+                  colSpan={columns.length + (actions?.length > 0 ? 1 : 0)}
+                  className="px-4 py-6 text-center text-sm text-gray-500"
+                >
+                  Cargando...
+                </td>
+              </tr>
+            ) : paginatedData.length > 0 ? (
               paginatedData.map((item, rowIndex) => (
                 <tr key={rowIndex} className="hover:bg-gray-50">
                   {columns.map((column) => (
@@ -135,8 +142,8 @@ export const Table = ({
               ))
             ) : (
               <tr>
-                <td 
-                  colSpan={columns.length + (actions?.length > 0 ? 1 : 0)} 
+                <td
+                  colSpan={columns.length + (actions?.length > 0 ? 1 : 0)}
                   className="px-4 py-6 text-center text-sm text-gray-500"
                 >
                   No hay datos disponibles
@@ -179,7 +186,7 @@ export const Table = ({
   );
 };
 
-// Prop Types (igual que antes)
+// Prop Types
 Table.propTypes = {
   title: PropTypes.string,
   columns: PropTypes.arrayOf(
@@ -201,4 +208,5 @@ Table.propTypes = {
   onAddClick: PropTypes.func,
   addButtonText: PropTypes.string,
   itemsPerPage: PropTypes.number,
+  isLoading: PropTypes.bool,
 };

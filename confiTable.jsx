@@ -115,7 +115,46 @@ const toolsIssuedColumns = [
   }
 ];
 
+// "id": 1,
+// "firstname": "Adonay",
+// "lastname": "Aragón",
+// "dui": "00000000-0"
+// }
+
+const columnsShifts = [
+  { 
+    key: "id", 
+    title: "ID", 
+    width: 80 
+  },
+  { 
+    key: "employee", 
+    title: "Empleado", 
+    width: 200,
+    render: (item) => (
+      <span>
+        {item.employee.firstname} {item.employee.lastname}
+      </span>
+    )
+  },
+  { 
+    key: "check_in_time", 
+    title: "Hora de entrada", 
+    render: (item) => (
+      <span className="font-mono text-xs px-2 py-1">{item.check_in_time}</span>
+    )
+  },
+  { 
+    key: "check_out_time", 
+    title: "Hora de salida", 
+    render: (item) => (
+      <span className="font-mono text-xs px-2 py-1">{item.check_out_time}</span>
+    )
+  }
+
+]
 
 
 
-export {columnsEmployees, columnsUser, toolsIssuedColumns}
+
+export {columnsEmployees, columnsUser, columnsShifts, toolsIssuedColumns}
