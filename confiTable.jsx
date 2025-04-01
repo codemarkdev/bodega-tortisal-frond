@@ -33,6 +33,9 @@ const columnsShifts = [
 
 ]
 
+
+
+
 const columnsUser = [
   {
     key: "id",
@@ -84,8 +87,13 @@ const toolsIssuedColumns = [
   },
   {
     key: "shift_info",
-    title: "Turno (Fecha - Empleado)",
-    width: 200,
+    title: "Turno (Fecha)",
+    width: 150,
+  },
+  {
+    key: "employee_name",
+    title: "Empleado",
+    width: 150,
   },
   {
     key: "product_name",
@@ -110,16 +118,42 @@ const toolsIssuedColumns = [
     render: (item) => <span className="font-medium">{item.quantity_returned}</span>,
   },
   {
+    key: "quantity_missing",
+    title: "Cant. Faltante",
+    width: 120,
+    render: (item) => (
+      <span className={`font-medium ${item.quantity_missing > 0 ? "text-red-600 font-bold" : ""}`}>
+        {item.quantity_missing || 0}
+      </span>
+    ),
+  },
+  {
     key: "status",
     title: "Estado",
     width: 120,
+    render: (item) => {
+      let colorClass = "bg-yellow-100 text-yellow-800" // Default para Pendiente
+
+      if (item.status === "Devuelto" || item.status === "DEVUELTO") {
+        colorClass = "bg-green-100 text-green-800"
+      } else if (item.status === "Parcial" || item.status === "PARCIAL") {
+        colorClass = "bg-blue-100 text-blue-800"
+      }
+
+      return <span className={`px-2 py-1 rounded-full text-xs ${colorClass}`}>{item.status}</span>
+    },
+  },
+  {
+    key: "shift_end",
+    title: "Fin de Turno",
+    width: 150,
     render: (item) => (
-      <span
-        className={`px-2 py-1 rounded-full text-xs ${
-          item.status === "Devuelto" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
-        }`}
-      >
-        {item.status}
+      <span>
+        {item.shift_end ? (
+          <span className="text-green-600">{item.shift_end}</span>
+        ) : (
+          <span className="text-yellow-600 text-xs font-medium px-2 py-1 bg-yellow-50 rounded-full">En curso</span>
+        )}
       </span>
     ),
   },
@@ -141,5 +175,5 @@ const columsInventario = [
   },
 ]
 
-export { columnsEmployees, columnsUser, toolsIssuedColumns, columsInventario, columnsShifts }
+export { columnsEmployees, columnsUser, toolsIssuedColumns, columsInventario,columnsShifts  }
 
