@@ -27,7 +27,11 @@ const columnsShifts = [
     key: "check_out_time", 
     title: "Hora de salida", 
     render: (item) => (
-      <span className="font-mono text-xs px-2 py-1">{item.check_out_time}</span>
+      <span 
+      className={`font-mono text-xs px-2 py-1 ${!item.check_out_time ? 'text-red-500 bg-red-100 rounded-2xl' : ''}`}
+    >
+      {item.check_out_time ? item.check_out_time : 'No marcada'}
+    </span>
     )
   }
 
@@ -78,6 +82,33 @@ const columnsEmployees = [
     render: (item) => <span className="font-mono">{item.dui}</span>,
   },
 ]
+
+const toolsEmployeShift = [
+  {
+    key: "toolName",
+    title: "Herramientas",
+},
+{
+    key: "issued",
+    title: "Asignadas",
+},
+{
+    key: "missing",
+    title: "Faltantes",
+},
+{
+    key: "returned",
+    title: "Devueltos",
+},
+{
+    key: "toolStatus",
+    title: "Asignadas",
+    render: ((item) => (
+        <span className={`px-2 py-1 text-xs rounded-full ${item.toolStatus == 'COMPLETO' ? ' bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'}`}>{item.toolStatus == "COMPLETO" ? 'Completo' : 'Faltante'}</span>
+    )
+    )
+}
+];
 
 const toolsIssuedColumns = [
 
@@ -193,5 +224,5 @@ const columsMissing = [
   },
 ]
 
-export { columnsEmployees, columnsUser, toolsIssuedColumns, columsInventario,columnsShifts,columsMissing  }
+export { columnsEmployees, columnsUser, toolsIssuedColumns, columsInventario,columnsShifts,columsMissing, toolsEmployeShift  }
 

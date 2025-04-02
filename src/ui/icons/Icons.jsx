@@ -17,6 +17,29 @@ export const Plus = () => {
       </svg>
     );
   };
+  export const ToolReturn = () => {
+    return (
+      <svg 
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+        <path d="M9 12h6" />
+        <path d="M12 15l3 -3l-3 -3" />
+        <path d="M4 17v-2a4 4 0 0 1 4 -4h9" />
+        <path d="M4 7h16" />
+        <path d="M10 7v-2" />
+        <path d="M14 7v-2" />
+      </svg>
+    );
+};
   
   export const Trash = () => {
     return (
@@ -221,6 +244,26 @@ export const Plus = () => {
         <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
         <path d="M16.7 8a3 3 0 0 0 -2.7 -2h-4a3 3 0 0 0 0 6h4a3 3 0 0 1 0 6h-4a3 3 0 0 1 -2.7 -2" />
         <path d="M12 3v3m0 12v3" />
+      </svg>
+    );
+  };
+
+  export const Eye = () => {
+    return (
+      <svg 
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+        <path d="M12 12m-9 0a9 9 0 1 1 18 0a9 9 0 1 1 -18 0" />
+        <path d="M12 12m-3 0a3 3 0 1 1 6 0a3 3 0 1 1 -6 0" />
       </svg>
     );
   };

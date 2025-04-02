@@ -20,14 +20,8 @@ export const ProductsPage = () => {
   const [isSearching, setIsSearching] = useState(false) // Si se está haciendo una búsqueda
   const [currentSearchTerm, setCurrentSearchTerm] = useState("") // Término de búsqueda actual
 
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalItems: 0,
-    itemsPerPage: 10,
-  });
-
   // Función para obtener los productos desde la API (puede incluir búsqueda)
-  const getproducts = async (search = "", page = 1) => {
+  const getproducts = async (search = "") => {
     setIsLoading(true)
     setError(null)
 
@@ -35,7 +29,7 @@ export const ProductsPage = () => {
       // Si hay búsqueda, usa el endpoint de búsqueda; si no, lista general paginada
       const endpoint = search
         ? `products/search?name=${encodeURIComponent(search)}`
-        : `products?page=${page}&limit=${pagination.itemsPerPage}`
+        : `products?page=1&limit=10`
 
       const response = await apiRequest({
         method: "GET",
@@ -44,14 +38,16 @@ export const ProductsPage = () => {
 
       if (response.status === 200) {
         const data = response.data
-     console.log('data', data)
-          setListProducts(data.data);
-          setPagination((prev) => ({
-            ...prev,
-            totalItems: data.total || 0,
-            currentPage: page,
-          }));
-    
+
+        // Detecta la estructura de la data y arma un array de productos
+        if (Array.isArray(data)) {
+          setListProducts(data)
+        } else if (data && typeof data === "object") {
+          const productsArray = data.items || data.products || data.results || data.data || []
+          setListProducts(Array.isArray(productsArray) ? productsArray : [])
+        } else {
+          setListProducts([])
+        }
       } else {
         // Error de respuesta (no 200)
         setListProducts([])
@@ -79,10 +75,6 @@ export const ProductsPage = () => {
     getproducts(searchTerm)
   }
 
-  const handlePageChange = (page) => {
-    getproducts(currentSearchTerm, page);
-  };
-
   // Cuando el usuario presiona "Editar"
   const handleEdit = (id) => {
     navigate(`/products/edit/${id}`)
@@ -100,7 +92,7 @@ export const ProductsPage = () => {
 
   // Después de eliminar exitosamente
   const handleSuccessDelete = () => {
-    getproducts(currentSearchTerm, pagination.currentPage) // Se vuelve a cargar la lista actual
+    getproducts(currentSearchTerm) // Se vuelve a cargar la lista actual
     setProductToDelete(null)
   }
 
@@ -147,18 +139,12 @@ export const ProductsPage = () => {
         <div>Cargando productos...</div>
       ) : (
         <Table
-          title={currentSearchTerm ? `Resultados para "${currentSearchTerm}"` : "Herramientas"}
+          title={currentSearchTerm ? `Resultados para "${currentSearchTerm}"` : "Inventario"}
           columns={columsInventario}
           actions={actions}
           addButtonText="Agregar Inventario"
           onAddClick={handleAddProduct}
           data={listProducts || []}
-          paginationProps={{
-            itemsPerPage: pagination.itemsPerPage,
-            totalItems: pagination.totalItems,
-            currentPage: pagination.currentPage,
-            onPageChange: handlePageChange,
-          }}
         />
       )}
 

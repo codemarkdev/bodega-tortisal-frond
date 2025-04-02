@@ -157,7 +157,13 @@ export const EmployeesPage = () => {
             message={alert.msg}  
             type={alert.type} 
             onClose={() => {
-           restAlert()
+              setListShifts(prev => ({
+                ...prev,
+                alert: {
+                  ...prev.alert,
+                  show: false
+                }
+              }));
             }}
             duration={3000}
           />)}

@@ -11,15 +11,16 @@ import { EmployeesPage } from "../employees/pages/EmployeesPage"
 import { AddEmployee } from "../employees/pages/AddEmployee"
 import { EditEmployee } from "../employees/pages/EditEmployee"
 import { EmployeeDetail } from "../employees/pages/EmployeeDetail"
-import { ToolsIssuedPage } from "../tools-issued/pages/ToolsIssuedPage"
+// import { ToolsIssuedPage } from "../tools-issued/pages/ToolsIssuedPage"
 import { UserPage } from "../users/pages/UserPage"
 import { EditUserPage } from "../users/pages/EditUserPage"
 import { UserAddPage } from "../users/pages/UserAddPage"
 import { ShiftsPage } from "../shifts/pages/ShiftsPage";
 import { ShiftsAddPage } from "../shifts/pages/ShiftsAddPage";
 import { ShiftsHistory } from "../shifts/pages/ShiftsHistory";
-import { ToolsIssuedDetails } from "../tools-issued/pages/ToolsIssuedDetails"
+// import { ToolsIssuedDetails } from "../tools-issued/pages/ToolsIssuedDetails"
 import { ReportPage } from "../report/pages/ReportPage"
+import { ShiftToolsDetails } from "../shifts/pages/shiftToolsDetails"
 export const TortisalRouter = () => {
   const { logged } = useContext(AuthContext)
 
@@ -50,14 +51,15 @@ export const TortisalRouter = () => {
         <Route path="users/add" element={<UserAddPage />}></Route>
 
         {/* Rutas de herramientas entregadas */}
-        <Route path="tools-issued" element={<ToolsIssuedPage />}></Route>
-        <Route path="tools-issued/details/:employeeId/:shiftId" element={<ToolsIssuedDetails />}></Route>
-        <Route path="tools-issued/return/:shiftId/:employeeId" element={<ToolsIssuedPage />}></Route>
+        {/* <Route path="tools-issued" element={<ToolsIssuedPage />}></Route> */}
+        {/* <Route path="tools-issued/details/:employeeId/:shiftId" element={<ToolsIssuedDetails />}></Route>
+        <Route path="tools-issued/return/:shiftId/:employeeId" element={<ToolsIssuedPage />}></Route> */}
 
         {/* Rutas de turnos */}
         <Route path="shifts" element={<ShiftsPage />}></Route>
         <Route path="shifts/:id" element={<ShiftsHistory />}></Route>
         <Route path="shifts/add" element={<ShiftsAddPage />}></Route>
+        <Route path="shifts/:idShift/:idEmployee" element={<ShiftToolsDetails/>}></Route>
 
         {/* Rutas de turnos */}
         <Route path="report" element={<ReportPage />}></Route>

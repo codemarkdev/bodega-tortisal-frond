@@ -74,7 +74,7 @@ export const ShiftsHistory = () => {
 
     return (
         <div className="shifts-history-container">
-         <Breadcrumb  items={[{ label: "Turnos", href: "/users" }, { label: "Historial de turnos", href: '' }]} />
+         <Breadcrumb  items={[{ label: "Turnos", href: "/shifts" }, { label: "Historial de turnos" }]} />
             
             <Panel 
                 header={<h3 className="text-lg font-semibold">Filtros</h3>} 

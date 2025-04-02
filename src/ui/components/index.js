@@ -6,4 +6,5 @@ export * from './Table'
 export * from './Button'
 export * from './Breadcrumb '
 export * from './Select'
+export * from './Spinner'
 

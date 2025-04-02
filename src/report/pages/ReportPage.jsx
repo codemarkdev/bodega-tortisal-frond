@@ -167,7 +167,7 @@ export const ReportPage = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card className="shadow-lg px-8 py-6 bg-white rounded-lg hover:shadow-xl transition duration-200">
-          <h4 className="text-lg font-semibold text-gray-800">Herramienta con más pérdidas</h4>
+          <h4 className="text-lg font-semibold text-gray-800">Herramienta más faltante</h4>
           <p className="text-sm text-gray-500 mt-2">
             {datosReporte?.mostMissingProduct?.product?.name || 'N/A'}
           </p>
@@ -177,7 +177,7 @@ export const ReportPage = () => {
         </Card>
 
         <Card className="shadow-lg px-8 py-6 bg-white rounded-lg hover:shadow-xl transition duration-200">
-          <h4 className="text-lg font-semibold text-gray-800">Empleado con más pérdidas</h4>
+          <h4 className="text-lg font-semibold text-gray-800">Empleado con más herramientas faltantes</h4>
           <p className="text-sm text-gray-500 mt-2">
             {datosReporte?.worstEmployee?.employee?.name  || 'N/A'}
           </p>
@@ -185,7 +185,7 @@ export const ReportPage = () => {
         </Card>
 
         <Card className="shadow-lg px-8 py-6 bg-white rounded-lg hover:shadow-xl transition duration-200">
-          <h4 className="text-lg font-semibold text-gray-800">Total general de herramientas pérdidas</h4>
+          <h4 className="text-lg font-semibold text-gray-800">Total general de herramientas faltantes</h4>
           <p className="text-sm text-gray-600 mt-2">
             {formatearMoneda(datosReporte?.totalLoss?.totalLoss || 0)}
           </p>

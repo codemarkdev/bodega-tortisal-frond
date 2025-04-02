@@ -96,7 +96,7 @@ export const Table = ({
               )}
             </tr>
           </thead>
-          
+
           {/* Cuerpo de la tabla */}
           <tbody className="bg-white divide-y divide-gray-200">
             {isLoading ? ( // Mostrar el estado de carga si isLoading es true
@@ -119,18 +119,22 @@ export const Table = ({
                   {actions?.length > 0 && (
                     <td className="px-4 py-3 whitespace-nowrap text-right text-sm">
                       <div className="flex flex-wrap justify-end gap-2">
-                        {actions.map((action, i) => (
-                          <Button
+                        {actions.map((action, i) => {
+                          const isDisabled = action.disabled ? action.disabled(item) : false;
+
+                          return (<Button
                             key={i}
                             variant="ghost"
                             size="small"
                             icon={action.icon}
                             onClick={() => handleActionClick(item, action)}
                             className={`whitespace-nowrap ${action.className || ''}`}
+                            disabled={isDisabled}
                           >
                             {action.label}
-                          </Button>
-                        ))}
+                          </Button>)
+                        }
+                        )}
                       </div>
                     </td>
                   )}
