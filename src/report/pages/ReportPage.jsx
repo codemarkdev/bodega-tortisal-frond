@@ -1,113 +1,237 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { Card, Panel, Button, SelectPicker } from 'rsuite';
+import apiRequest from '../../helpers/ApiRequest';
+import { Shift, History,  Table } from '../../ui';
+import { columsMissing } from '../../../confiTable';
+
 
 export const ReportPage = () => {
-
-
-  const get = () => {
+  const [datosReporte, setDatosReporte] = useState(null);
+  const [employee, setEmployee] = useState([]);
+  const [selectedEmployee, setSelectedEmployee] = useState(null); // New state for selected employee
+  const [missingProduct, setmissingProduct] = useState({
+    isloading: false, 
+    data: []
+  });
   
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
+  const [ultimaActualizacion, setUltimaActualizacion] = useState(new Date());
+
+
+  const obtenerDatosReporte = async () => {
+    try {
+      setCargando(true);
+      setError(null);
+      const { data } = await apiRequest({
+        method: 'GET',
+        path: 'missing-products/stats'
+      });
+      setDatosReporte(data);
+      setUltimaActualizacion(new Date(data.lastUpdated));
+    } catch (error) {
+      console.error('Error al obtener los datos del reporte:', error);
+      setError('No se pudo cargar el reporte. Inténtalo de nuevo.');
+    } finally {
+      setCargando(false);
+    }
+  };
+  const getEmployee = async() => {
+   const {status, data} = await apiRequest({
+    method: "GET",
+    path: 'employees/findAll'
+   })
+   if(status == 200){
+    setEmployee(data)
+    console.log('data',data.data)
+   }
+   else {
+    setEmployee([])
+   }
   }
-  useEffect(() => {
-    
-  }, []);
-  // Datos de ejemplo
-  const stats = {
-    totalReports: 1245,
-    resolved: 892,
-    pending: 353,
-    averageResolutionTime: '2.5 días',
-    newThisWeek: 127,
-    resolutionRate: Math.round((892 / 1245) * 100),
-    pendingRate: Math.round((353 / 1245) * 100)
+
+  const getMissingProduct = async (employeeId = null, dateRange = null) => {
+    setmissingProduct((prev) => ({
+      ...prev,
+      isloading: true
+    }));
+
+    let path = 'missing-products';
+    console.log('emp', employeeId)
+    if (employeeId) {
+      path = `missing-products/employee/${employeeId}`;
+    }
+
+    const { data, status } = await apiRequest({
+      method: 'GET',
+      path,
+    });
+
+    if (status === 200) {
+      setmissingProduct({
+        data: data,
+        isloading: false
+      });
+    } else {
+      setmissingProduct({
+        data: [],
+        isloading: false
+      });
+    }
   };
 
+  useEffect(() => {
+    getEmployee(); 
+    getMissingProduct(); 
+    obtenerDatosReporte();
+  }, []);
+
+  const applyFilters = () => {
+    const employeeId = selectedEmployee; // Directly use selectedEmployee as it holds the value
+    getMissingProduct(employeeId); 
+  };
+
+  const formatearMoneda = (valor) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(valor);
+  };
+
+  const formatearFecha = (fecha) => {
+    if (!fecha) return 'N/A';
+    return new Date(fecha).toLocaleString();
+  };
+
+  if (cargando && !datosReporte) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-2"></div>
+          <p className="text-gray-600">Cargando datos del reporte...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-md mx-auto mt-8 p-4 bg-red-50 border border-red-200 rounded-lg text-center">
+        <div className="text-red-500 mb-3">
+          <Shift className="inline-block" />
+        </div>
+        <p className="text-red-700 mb-4">{error}</p>
+        <button
+          onClick={obtenerDatosReporte}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center justify-center mx-auto"
+          disabled={cargando}
+        >
+          {cargando ? (
+            <span className="animate-spin inline-block mr-2">
+              <Shift className="w-4 h-4" />
+            </span>
+          ) : (
+            <span className="mr-2">
+              <History className="w-4 h-4" />
+            </span>
+          )}
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">Estadísticas de Reportes</h1>
-        <p className="text-gray-600">Resumen general del sistema</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        {/* Card 1: Total de reportes */}
-        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
-              <span className="font-bold text-xl">📊</span>
-            </div>
-            <div>
-              <h3 className="text-gray-500 font-medium">Total de Reportes</h3>
-              <p className="text-2xl font-bold text-gray-800">{stats.totalReports.toLocaleString()}</p>
-              <p className="text-sm text-green-600">↑ 12% vs último mes</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: Resueltos */}
-        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
-          <div className="flex flex-col h-full">
-            <div className="flex items-center mb-2">
-              <div className="p-3 rounded-full bg-green-100 text-green-600 mr-4">
-                <span className="font-bold text-xl">✔️</span>
-              </div>
-              <div>
-                <h3 className="text-gray-500 font-medium">Resueltos</h3>
-                <p className="text-2xl font-bold text-gray-800">{stats.resolved.toLocaleString()}</p>
-              </div>
-            </div>
-            <div className="mt-auto">
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-green-500 h-2 rounded-full" 
-                  style={{ width: `${stats.resolutionRate}%` }}
-                ></div>
-              </div>
-              <p className="text-sm text-gray-500 mt-1">{stats.resolutionRate}% de efectividad</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: Pendientes */}
-        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-red-100 text-red-600 mr-4">
-              <span className="font-bold text-xl">⚠️</span>
-            </div>
-            <div>
-              <h3 className="text-gray-500 font-medium">Pendientes</h3>
-              <p className="text-2xl font-bold text-gray-800">{stats.pending.toLocaleString()}</p>
-              <p className="text-sm text-gray-500">{stats.pendingRate}% del total</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 4: Tiempo promedio */}
-        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
-              <span className="font-bold text-xl">⏱️</span>
-            </div>
-            <div>
-              <h3 className="text-gray-500 font-medium">Tiempo Promedio</h3>
-              <p className="text-2xl font-bold text-gray-800">{stats.averageResolutionTime}</p>
-              <p className="text-sm text-green-600">↓ 0.5 días vs último trimestre</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 5: Nuevos esta semana */}
-        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-yellow-100 text-yellow-600 mr-4">
-              <span className="font-bold text-xl">🆕</span>
-            </div>
-            <div>
-              <h3 className="text-gray-500 font-medium">Nuevos esta semana</h3>
-              <p className="text-2xl font-bold text-gray-800">{stats.newThisWeek}</p>
-              <p className="text-sm text-green-600">↑ 8% vs semana anterior</p>
-            </div>
-          </div>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="flex justify-between items-center mb-8">
+        <h3 className="text-2xl font-bold text-gray-800">Panel de Reporte de Herramientas Faltantes</h3>
+        <div className="flex items-center space-x-4">
+          <span className="text-sm text-gray-600">
+            Última actualización: <span className="font-medium">{formatearFecha(ultimaActualizacion)}</span>
+          </span>
+          <button
+            onClick={obtenerDatosReporte}
+            className="p-2 bg-blue-500 text-white rounded-full shadow hover:bg-blue-600 transition duration-200"
+            disabled={cargando}
+          >
+            {cargando ? (
+              <span className="animate-spin inline-block">
+                <Shift className="w-5 h-5" />
+              </span>
+            ) : (
+              <History className="w-5 h-5" />
+            )}
+          </button>
         </div>
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card className="shadow-lg px-8 py-6 bg-white rounded-lg hover:shadow-xl transition duration-200">
+          <h4 className="text-lg font-semibold text-gray-800">Herramienta con más pérdidas</h4>
+          <p className="text-sm text-gray-500 mt-2">
+            {datosReporte?.mostMissingProduct?.product?.name || 'N/A'}
+          </p>
+          <p className="text-sm text-gray-600 mt-2">
+            Total faltante: <span className="font-medium">{datosReporte?.mostMissingProduct?.totalMissing || 0}</span>
+          </p>
+        </Card>
+
+        <Card className="shadow-lg px-8 py-6 bg-white rounded-lg hover:shadow-xl transition duration-200">
+          <h4 className="text-lg font-semibold text-gray-800">Empleado con más pérdidas</h4>
+          <p className="text-sm text-gray-500 mt-2">
+            {datosReporte?.worstEmployee?.employee?.name  || 'N/A'}
+          </p>
+       
+        </Card>
+
+        <Card className="shadow-lg px-8 py-6 bg-white rounded-lg hover:shadow-xl transition duration-200">
+          <h4 className="text-lg font-semibold text-gray-800">Total general de herramientas pérdidas</h4>
+          <p className="text-sm text-gray-600 mt-2">
+            {formatearMoneda(datosReporte?.totalLoss?.totalLoss || 0)}
+          </p>
+        </Card>
+      </div>
+
+      <Panel
+        header={<h3 className="text-lg font-semibold text-gray-800">Filtrar por empleado</h3>}
+      collapsible
+        bordered
+        className="mt-8 bg-white shadow-lg rounded-lg"
+      >
+        <div className="flex items-center space-x-6">
+          <SelectPicker
+            data={employee.map((item) => ({ label: `${item?.firstname} ${item?.lastname}`, value: item.id }))}
+            placeholder="Selecciona un empleado para filtrar"
+            onChange={(value) => setSelectedEmployee(value)}
+            style={{ width: 300 }}
+            loading={employee.length === 0}
+            className="border border-gray-300 rounded-lg shadow-sm"
+          />
+
+          <Button
+            appearance="primary"
+            onClick={applyFilters}
+            loading={missingProduct.isloading}
+            className="bg-blue-500 text-white hover:bg-blue-600 transition duration-200"
+          >
+            Aplicar filtro
+          </Button>
+        </div>
+      </Panel>
+
+      {missingProduct.data.length === 0 && !missingProduct.isloading ? (
+        <div className="text-center text-gray-500 mt-6">
+          No hay datos disponibles para mostrar.
+        </div>
+      ) : (
+        <div className="mt-6 bg-white shadow-lg rounded-lg p-4">
+          <Table
+            data={missingProduct.data}
+            columns={columsMissing}
+            className="rounded-lg overflow-hidden"
+          />
+        </div>
+      )}
     </div>
   );
 };

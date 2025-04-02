@@ -6,36 +6,55 @@ import { columnsEmployees } from "../../../confiTable"
 import { Edit, Table, Trash } from "../../ui"
 import apiRequest from "../../helpers/ApiRequest"
 import { DeleteEmployee } from "./DeleteEmployee"
+import { FloatingAlert } from "../../ui/components/FlotingAlert"
 
 export const EmployeesPage = () => {
   const navigate = useNavigate()
   const [employees, setEmployees] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [alert, setAlert] = useState({
+    show: false,
+    type: 'error',
+    msg: ''
+  })
   const [error, setError] = useState(null)
   const [employeeToDelete, setEmployeeToDelete] = useState(null)
 
-  const fetchEmployees = async () => {
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
+
+  const restAlert = () => {
+    setAlert({
+      show: false,
+      msg: '',
+      error: 'error'
+    })
+  }
+
+  const fetchEmployees = async (page = 1) => {
     setIsLoading(true)
     setError(null)
 
     try {
       const response = await apiRequest({
         method: "GET",
-        path: "employees?page=1&limit=30",
+        path: `employees?page=${page}&limit=${pagination.itemsPerPage}`,
       })
 
       if (response.status === 200) {
         const data = response.data
 
-        // Procesamiento de datos para asegurar que tenemos un array
-        if (Array.isArray(data)) {
-          setEmployees(data)
-        } else if (data && typeof data === "object") {
-          const employeesArray = data.items || data.employees || data.results || data.data || []
-          setEmployees(Array.isArray(employeesArray) ? employeesArray : [])
-        } else {
-          setEmployees([])
-        }
+
+        setEmployees(data.data);
+        setPagination((prev) => ({
+          ...prev,
+          totalItems: data.total || 0,
+          currentPage: page,
+        }));
+
       } else {
         setEmployees([])
         setError(`Error al obtener empleados. Código: ${response.status}`)
@@ -57,22 +76,43 @@ export const EmployeesPage = () => {
     navigate(`/employees/edit/${id}`)
   }
 
-  const handleDelete = (employee) => {
-    setEmployeeToDelete(employee)
+  const handleDelete = async (employee) => {
+    const { status, data } = await apiRequest({
+      path: `employees/${employee.id}`,
+      method: 'DELETE'
+    })
+    if (status === 200) {
+      setAlert(
+       {
+        show: true,
+        msg:'Eliminadas correctamente',
+        type: "success"
+       }
+      )
+      fetchEmployees()
+    }
+    else {
+      setAlert(
+        {
+         show: true,
+         msg:'Ya esta relacionado con turno',
+         type: "error"
+        }
+       )
+
+    }
+
   }
 
-  const handleCancelDelete = () => {
-    setEmployeeToDelete(null)
-  }
 
-  const handleSuccessDelete = () => {
-    fetchEmployees()
-    setEmployeeToDelete(null)
-  }
 
   const handleAddEmployee = () => {
     navigate("/employees/create")
   }
+
+  const handlePageChange = (page) => {
+    fetchEmployees(page);
+  };
 
   // Configuración de acciones para la tabla
   const actions = [
@@ -95,6 +135,7 @@ export const EmployeesPage = () => {
       {isLoading ? (
         <div className="text-center py-8">Cargando empleados...</div>
       ) : (
+        
         <Table
           title="Empleados"
           columns={columnsEmployees}
@@ -102,17 +143,26 @@ export const EmployeesPage = () => {
           addButtonText="Agregar Empleado"
           onAddClick={handleAddEmployee}
           data={employees || []}
+          paginationProps={{
+            itemsPerPage: pagination.itemsPerPage,
+            totalItems: pagination.totalItems,
+            currentPage: pagination.currentPage,
+            onPageChange: handlePageChange,
+          }}
         />
       )}
+      {alert.show && (
+          <FloatingAlert 
+            position="top-center"
+            message={alert.msg}  
+            type={alert.type} 
+            onClose={() => {
+           restAlert()
+            }}
+            duration={3000}
+          />)}
 
-      {employeeToDelete && (
-        <DeleteEmployee
-          employeeId={employeeToDelete.id}
-          employeeName={`${employeeToDelete.firstname} ${employeeToDelete.lastname}`}
-          onCancel={handleCancelDelete}
-          onSuccess={handleSuccessDelete}
-        />
-      )}
+
     </div>
   )
 }

@@ -38,7 +38,7 @@ export const Navbar = () => {
                     </button>
                 </div>
                 <div className="hidden lg:flex lg:gap-x-12">
-                    <NavLink to="/" className={(({ isActive }) => `nav-item nav-link text-sm/6 font-semibold text-gray-900 ${isActive ? 'active' : ''}`)}>Inventario</NavLink>
+                    <NavLink to="/" className={(({ isActive }) => `nav-item nav-link text-sm/6 font-semibold text-gray-900 ${isActive ? 'active' : ''}`)}>Herramientas</NavLink>
                     <NavLink to='/employees'className={(({ isActive }) => `nav-item nav-link text-sm/6 font-semibold text-gray-900 ${isActive ? 'active' : ''}`)}>Empleados</NavLink>
                     <NavLink to="/users" className={(({ isActive }) => `nav-item nav-link text-sm/6 font-semibold text-gray-900 ${isActive ? 'active' : ''}`)}>Usuarios</NavLink>
                     <NavLink to="/tools-issued" className={(({ isActive }) => `nav-item nav-link text-sm/6 font-semibold text-gray-900 ${isActive ? 'active' : ''}`)}>Herramientas emitidas</NavLink>
@@ -69,7 +69,7 @@ export const Navbar = () => {
                         <div className="mt-6 flow-root">
                             <div className="-my-6 divide-y divide-gray-500/10">
                                 <div className="space-y-2 py-6">
-                                    <NavLink to="/" className={(({ isActive }) => `-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 ${isActive ? 'active' : ''}`)}>Inventario</NavLink>
+                                    <NavLink to="/" className={(({ isActive }) => `-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 ${isActive ? 'active' : ''}`)}>Herramientas</NavLink>
                                     <NavLink to='/employees'className={(({ isActive }) => `-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 ${isActive ? 'active' : ''}`)}>Empleados</NavLink>
                                     <NavLink to="/users" className={(({ isActive }) => `-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 ${isActive ? 'active' : ''}`)}>Usuarios</NavLink>
                                     <NavLink to="/tools-issued" className={(({ isActive }) => `-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50 ${isActive ? 'active' : ''}`)}>Herramientas emitidas</NavLink>

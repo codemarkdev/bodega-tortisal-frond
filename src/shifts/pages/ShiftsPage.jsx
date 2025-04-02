@@ -20,9 +20,14 @@ export const ShiftsPage = () => {
     selectedDate: null
   });
   
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
+
   const navigate = useNavigate();
   
-  // Función para formatear fecha a DD-MM-YYYY
   const formatDate = (date) => {
     if (!date) return '';
     const day = String(date.getDate()).padStart(2, '0');
@@ -31,13 +36,13 @@ export const ShiftsPage = () => {
     return `${day}-${month}-${year}`;
   };
 
-  const getShifts = async (date = null) => {
+  const getShifts = async (date = null, page = 1) => {
     setListShifts(prev => ({
       ...prev, 
       isLoading: true
     }));
     
-    let path = 'shifts?page=1&limit=6';
+    let path = `shifts?page=${page}&limit=${pagination.itemsPerPage}`;
     if (date) {
       path += `&date=${formatDate(date)}`;
     }
@@ -48,7 +53,7 @@ export const ShiftsPage = () => {
         path: path
       });
       
-      if(status === 200){
+      if (status === 200) {
         setListShifts(prev => ({
           ...prev,
           data: data.data ?? [],
@@ -58,6 +63,11 @@ export const ShiftsPage = () => {
             ...prev.alert,
             show: false
           }
+        }));
+        setPagination(prev => ({
+          ...prev,
+          totalItems: data.total ?? 0,
+          currentPage: page
         }));
       } else {
         setListShifts(prev => ({
@@ -192,6 +202,10 @@ export const ShiftsPage = () => {
     }
   };
 
+  const handlePageChange = (page) => {
+    getShifts(listShifts.selectedDate, page);
+  };
+
   const actions = [
     {
       icon: Trash,
@@ -202,7 +216,7 @@ export const ShiftsPage = () => {
     }, 
     {
       icon: Calendar,
-      label: 'Hora de salida',
+      label: 'Cerrar turno',
       onClick: (shift) => handleCheckOutTime(shift.employee.id),
       disabled: listShifts.isLoading
     },
@@ -266,11 +280,11 @@ export const ShiftsPage = () => {
         actions={actions}
         onAddClick={() => navigate('/shifts/add')}
         addButtonText="Nuevo turno"
-        itemsPerPage={10}
         paginationProps={{
-          showLengthMenu: true,
-          showInfo: true,
-          lengthMenu: [5, 10, 20, 50]
+          itemsPerPage: pagination.itemsPerPage,
+          totalItems: pagination.totalItems,
+          currentPage: pagination.currentPage,
+          onPageChange: handlePageChange,
         }}
         emptyMessage={listShifts.selectedDate 
           ? "No hay turnos registrados para esta fecha" 

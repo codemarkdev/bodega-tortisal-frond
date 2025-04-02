@@ -126,7 +126,7 @@ export const EditEmployee = () => {
         </FormField>
 
         <FormField>
-          <Input label="DUI" type="text" name="dui" value={employee.dui} onChange={handleChange} required />
+          <Input label="DUI"  mask="########-#" type="text" name="dui" value={employee.dui} onChange={handleChange} required />
         </FormField>
 
         <div className="flex justify-end space-x-3 mt-6">

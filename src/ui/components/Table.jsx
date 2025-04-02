@@ -10,24 +10,19 @@ export const Table = ({
   actions,
   onAddClick,
   addButtonText = 'Add',
-  itemsPerPage = 5,
-  isLoading = false 
+  paginationProps = {},
+  isLoading = false,
 }) => {
-  const [currentPage, setCurrentPage] = useState(1);
+  const { itemsPerPage = 5, totalItems = 0, currentPage = 1, onPageChange } = paginationProps;
+
+  const handlePrevious = () => currentPage > 1 && onPageChange(currentPage - 1);
+  const handleNext = () => currentPage < Math.ceil(totalItems / itemsPerPage) && onPageChange(currentPage + 1);
+
   const [confirmationState, setConfirmationState] = useState({
     show: false,
     item: null,
     action: null
   });
-
-  // Paginación
-  const totalPages = Math.ceil(data.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedData = data.slice(startIndex, endIndex);
-
-  const handlePrevious = () => currentPage > 1 && setCurrentPage(currentPage - 1);
-  const handleNext = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
 
   const handleActionClick = (item, action) => {
     if (action.icon === Trash) {
@@ -113,8 +108,8 @@ export const Table = ({
                   Cargando...
                 </td>
               </tr>
-            ) : paginatedData.length > 0 ? (
-              paginatedData.map((item, rowIndex) => (
+            ) : data.length > 0 ? (
+              data.map((item, rowIndex) => (
                 <tr key={rowIndex} className="hover:bg-gray-50">
                   {columns.map((column) => (
                     <td key={`${column.key}-${rowIndex}`} className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
@@ -156,12 +151,12 @@ export const Table = ({
       </div>
 
       {/* Paginación */}
-      {data.length > 0 && data.length > itemsPerPage && (
+      {totalItems > itemsPerPage && (
         <div className="flex items-center justify-between text-sm text-gray-600">
           <div>
-            Mostrando <span className="font-medium">{startIndex + 1}</span> -{' '}
-            <span className="font-medium">{Math.min(endIndex, data.length)}</span> de{' '}
-            <span className="font-medium">{data.length}</span> registros
+            Mostrando <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> -{' '}
+            <span className="font-medium">{Math.min(currentPage * itemsPerPage, totalItems)}</span> de{' '}
+            <span className="font-medium">{totalItems}</span> registros
           </div>
           <div className="flex space-x-1">
             <Button
@@ -176,7 +171,7 @@ export const Table = ({
               variant="ghost"
               size="small"
               onClick={handleNext}
-              disabled={currentPage === totalPages}
+              disabled={currentPage === Math.ceil(totalItems / itemsPerPage)}
             >
               Siguiente
             </Button>
@@ -208,6 +203,11 @@ Table.propTypes = {
   ),
   onAddClick: PropTypes.func,
   addButtonText: PropTypes.string,
-  itemsPerPage: PropTypes.number,
+  paginationProps: PropTypes.shape({
+    itemsPerPage: PropTypes.number,
+    totalItems: PropTypes.number,
+    currentPage: PropTypes.number,
+    onPageChange: PropTypes.func,
+  }),
   isLoading: PropTypes.bool,
 };

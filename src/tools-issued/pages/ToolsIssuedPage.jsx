@@ -21,6 +21,18 @@ export const ToolsIssuedPage = () => {
   const [employees, setEmployees] = useState([])
   const [shifts, setShifts] = useState([])
 
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 4
+
+  const paginatedData = toolsIssued.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page)
+  }
+
   // Obtener empleados y turnos
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -28,7 +40,7 @@ export const ToolsIssuedPage = () => {
         // Obtener empleados
         const employeesResponse = await apiRequest({
           method: "GET",
-          path: "employees",
+          path: "employees/findAll",
         })
 
         if (employeesResponse.status === 200) {
@@ -208,7 +220,7 @@ export const ToolsIssuedPage = () => {
         // Obtener empleados
         const employeesResponse = await apiRequest({
           method: "GET",
-          path: "employees",
+          path: "employees/findAll",
         })
 
         // Obtener turnos
@@ -231,6 +243,7 @@ export const ToolsIssuedPage = () => {
               shiftsResponse.data.results ||
               shiftsResponse.data.data ||
               []
+
           }
 
           setShifts(shiftsData)
@@ -293,7 +306,13 @@ export const ToolsIssuedPage = () => {
           actions={toolsIssuedActions}
           addButtonText="Nueva Asignación"
           onAddClick={handleIssueTools}
-          data={toolsIssued || []}
+          data={paginatedData}
+          paginationProps={{
+            itemsPerPage,
+            totalItems: toolsIssued.length,
+            currentPage,
+            onPageChange: handlePageChange,
+          }}
         />
       )}
 

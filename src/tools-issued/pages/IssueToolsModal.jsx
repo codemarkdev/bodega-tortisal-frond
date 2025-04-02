@@ -21,7 +21,7 @@ export const IssueToolsModal = ({ onClose, onSuccess }) => {
         // Obtener empleados
         const employeesResponse = await apiRequest({
           method: "GET",
-          path: "employees?page=1&limit=1000",
+          path: "employees/findAll",
         })
 
         // Obtener productos
@@ -166,11 +166,19 @@ console.log('depurar: ', employeeId, )
       return
     }
 
-    const products = selectedItems.map((item) => ({
-      productId: Number.parseInt(item.productId),
-      quantity: Number.parseInt(item.quantity),
-    }))
-
+    const products = Object.values(
+      selectedItems.reduce((acc, item) => {
+        const productId = Number.parseInt(item.productId);
+        const quantity = Number.parseInt(item.quantity);
+        
+        acc[productId] = {
+          productId,
+          quantity: (acc[productId]?.quantity || 0) + quantity
+        };
+        
+        return acc;
+      }, {})
+    );
     try {
       console.log("Enviando datos de asignación:", {
         shiftId: currentShift.id,
@@ -181,7 +189,7 @@ console.log('depurar: ', employeeId, )
         method: "POST",
         path: `tools-issued/issue/${currentShift.id}`,
         data: {
-          products,
+          products
         },
       })
 

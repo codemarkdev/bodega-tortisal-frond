@@ -170,6 +170,28 @@ const columsInventario = [
     ),
   },
 ]
+const columsMissing = [
+  { key: "id", title: "ID" },
 
-export { columnsEmployees, columnsUser, toolsIssuedColumns, columsInventario,columnsShifts  }
+  {
+    title: "Herramienta",
+    render: (item) => (
+      <span className={`font-mono`}>
+        {item.product.name}
+      </span>
+    ),
+  },
+  { key: "missing_quantity", title: "Cantidad faltante" },
+  {
+   
+    title: "(Turno) - empleado",
+    render: (item) => (
+      <span className={`font-mono`}>
+        {`(${item?.shift?.check_in_time} - ${item?.shift?.check_out_time}) -${item?.shift?.employee.firstname} ${item?.shift?.employee?.lastname} `}
+      </span>
+    ),
+  },
+]
+
+export { columnsEmployees, columnsUser, toolsIssuedColumns, columsInventario,columnsShifts,columsMissing  }
 
