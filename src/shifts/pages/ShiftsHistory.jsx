@@ -1,10 +1,11 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Breadcrumb, Table } from "../../ui";
 import apiRequest from "../../helpers/ApiRequest";
 import { columnsShifts } from "../../../confiTable";
 import { useState, useEffect, useCallback } from "react";
-import { Button, DateRangePicker, Panel } from 'rsuite';
+import { Button, DateRangePicker, Panel} from 'rsuite';
 export const ShiftsHistory = () => {
+    const navigate = useNavigate()
     const { id } = useParams();
     const [dateRange, setDateRange] = useState(null);
     const [historyEmployee, setHistoryEmployee] = useState({
@@ -74,8 +75,8 @@ export const ShiftsHistory = () => {
 
     return (
         <div className="shifts-history-container">
-         <Breadcrumb  items={[{ label: "Turnos", href: "/shifts" }, { label: "Historial de turnos" }]} />
-            
+    
+    <Button type="ghost" onClick={() => navigate('/shifts')}>Regresar</Button>
             <Panel 
                 header={<h3 className="text-lg font-semibold">Filtros</h3>} 
                 className="bg-white shadow-sm my-6" 

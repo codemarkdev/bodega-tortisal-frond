@@ -5,6 +5,7 @@ import apiRequest from "../../helpers/ApiRequest";
 import { useNavigate } from "react-router-dom";
 import { FloatingAlert } from "../../ui/components/FlotingAlert";
 import { DatePicker, Button, Panel, Message, Modal, Input, InputNumber, SelectPicker, AutoComplete } from 'rsuite';
+import { useRef } from "react";
 
 export const ShiftsPage = () => {
   const [listShifts, setListShifts] = useState({
@@ -22,6 +23,7 @@ export const ShiftsPage = () => {
 
   const [currentShift, setCurrentShift] = useState({ idEmployee: null, shiftId: null });
   const [pagination, setPagination] = useState({ currentPage: 1, totalItems: 0, itemsPerPage: 10 });
+  const autoCompleteRef = useRef(null);
   const [tools, setTools] = useState({
     toAssign: [],
     available: [],
@@ -89,7 +91,7 @@ export const ShiftsPage = () => {
         setModals((prev) => ({ ...prev, showToolModal: true }));
         return;
       }
-      await proceedWithCheckOut(false ,idEmployee,shiftId);
+      await proceedWithCheckOut(false, idEmployee, shiftId);
     } catch {
       setListShifts((prev) => ({
         ...prev,
@@ -100,7 +102,7 @@ export const ShiftsPage = () => {
   };
 
   const proceedWithCheckOut = async (returnTools = false, idE, idS) => {
-   
+
     try {
       if (returnTools) {
         const { status, data } = await apiRequest({ method: "GET", path: `tools-issued/employee/${idE}/shift/${idS}` });
@@ -145,12 +147,12 @@ export const ShiftsPage = () => {
         }));
         await getShifts(listShifts.selectedDate);
       }
-      else{
+      else {
         setListShifts((prev) => ({
           ...prev,
           alert: { msg: "Las herramientas ya han sido asignadas al turno.", show: true, type: 'error' },
         }));
-       
+
       }
     } catch {
       setListShifts((prev) => ({
@@ -176,12 +178,13 @@ export const ShiftsPage = () => {
         setTools((prev) => ({
           ...prev,
           available: data.map(tool => ({
-            label: tool.name, // Mostrar el name en el AutoComplete
-            value: tool.id,   // Usar el id como valor
-            name: tool.name,
-            stock: tool.stock
+            label: tool.name,
+            value: tool.name,
+            id: tool.id,
+            stock: tool.quantity
           }))
         }));
+
       }
     } catch (error) {
       setListShifts(prev => ({
@@ -196,14 +199,12 @@ export const ShiftsPage = () => {
   };
 
   const handleAddTool = () => {
-    // Verificar que no se agreguen herramientas duplicadas
-    const existingIds = tools.toAssign.map(t => t.toolId);
-    const newTools = [...tools.toAssign, { 
-      toolId: null, 
+    const newTools = [...tools.toAssign, {
+      toolId: null,
       quantity: 1,
-      maxQuantity: 1 // Inicializamos con 1, se actualiza al seleccionar herramienta
+      maxQuantity: 1
     }];
-    
+
     setTools((prev) => ({ ...prev, toAssign: newTools }));
   };
 
@@ -214,28 +215,23 @@ export const ShiftsPage = () => {
   const handleToolChange = (index, field, value) => {
     setTools((prev) => {
       const updated = [...prev.toAssign];
-      
+
       if (field === 'toolId') {
         const selectedTool = prev.available.find(t => t.value === value);
         updated[index].maxQuantity = selectedTool ? selectedTool.stock : 1;
-        
-        // Si la cantidad actual es mayor que el nuevo stock, la ajustamos
         if (updated[index].quantity > updated[index].maxQuantity) {
           updated[index].quantity = updated[index].maxQuantity;
         }
-
-        // toolId será el id del producto
         updated[index][field] = value;
       } else {
         updated[index][field] = value;
       }
-      
       return { ...prev, toAssign: updated };
     });
   };
 
+
   const handleAssignTools = async () => {
-    // Validaciones antes de asignar
     const emptyTool = tools.toAssign.some(tool => !tool.toolId);
     if (emptyTool) {
       setTools((prev) => ({
@@ -246,7 +242,6 @@ export const ShiftsPage = () => {
           type: 'error',
         },
       }));
-
       setTimeout(() => {
         setTools((prev) => ({ ...prev, alert: { ...prev.alert, show: false } }));
       }, 3000);
@@ -254,7 +249,7 @@ export const ShiftsPage = () => {
       return;
     }
 
-    const invalidQuantity = tools.toAssign.some(tool => 
+    const invalidQuantity = tools.toAssign.some(tool =>
       tool.quantity < 1 || tool.quantity > tool.maxQuantity
     );
     if (invalidQuantity) {
@@ -289,7 +284,7 @@ export const ShiftsPage = () => {
       }
 
       // Filtrar herramientas que no están asignadas
-      const toolsToSend = tools.toAssign.filter(tool => 
+      const toolsToSend = tools.toAssign.filter(tool =>
         !alreadyIssuedProductIds.includes(tool.toolId)
       );
 
@@ -313,11 +308,15 @@ export const ShiftsPage = () => {
 
       // Agrupar herramientas por productId y sumar cantidades
       const groupedAssignments = toolsToSend.reduce((acc, tool) => {
-        const existingTool = acc.find(t => t.productId === tool.toolId);
+        const selectedTool = tools.available.find(t => t.value === tool.toolId); // Find tool by value
+        const toolId = selectedTool ? selectedTool.id : null; // Use id instead of value
+        if (!toolId) return acc;
+
+        const existingTool = acc.find(t => t.productId === toolId);
         if (existingTool) {
           existingTool.quantity += Number(tool.quantity); // Convertir a número antes de sumar
         } else {
-          acc.push({ productId: tool.toolId, quantity: Number(tool.quantity) }); // Convertir a número
+          acc.push({ productId: toolId, quantity: Number(tool.quantity) }); // Convertir a número
         }
         return acc;
       }, []);
@@ -326,7 +325,7 @@ export const ShiftsPage = () => {
         method: 'POST',
         path: `tools-issued/issue/${shift.id}`,
         data: {
-          products: groupedAssignments,
+          products: groupedAssignments, // Aquí se envía el id del producto
         }
       });
 
@@ -364,10 +363,9 @@ export const ShiftsPage = () => {
       setTools((prev) => ({ ...prev, assignLoading: false }));
     }
   };
-
   const getToolName = (toolId) => {
-    const tool = tools.available.find(t => t.value === toolId);
-    return tool ? tool.name : 'Selecciona herramienta';
+    const tool = tools.available.find(t => t.id === toolId);
+    return tool ? tool.label : 'Selecciona herramienta';
   };
 
   const actions = [
@@ -377,6 +375,11 @@ export const ShiftsPage = () => {
     { label: 'Cerrar turno', icon: Calendar, onClick: (shift) => handleCheckOutTime(shift.id, shift.employee.id), disabled: listShifts.isLoading },
     { label: "Historial", icon: History, onClick: (shift) => navigate(`/shifts/${shift.employee.id}`) },
   ];
+  useEffect(() => {
+    if (autoCompleteRef.current && modals.showAssignToolModal) {
+      autoCompleteRef.current.focus();
+    }
+  }, [modals.showAssignToolModal]);
 
   return (
     <div className="flex flex-col px-4 py-4 space-y-4">
@@ -465,18 +468,29 @@ export const ShiftsPage = () => {
         </Modal.Footer>
       </Modal>
 
-        <Modal open={modals.showAssignToolModal} onClose={() => !tools.assignLoading && setModals((prev) => ({ ...prev, showAssignToolModal: false }))} size="md">
+      <Modal open={modals.showAssignToolModal} onClose={() => {
+        if (!tools.assignLoading) {
+          setModals((prev) => ({ ...prev, showAssignToolModal: false }));
+          setTools({
+            toAssign: [],
+            available: [],
+            search: "",
+            assignLoading: false,
+            alert: { msg: "", show: false, type: "error" },
+          });
+        }
+      }} size="md">
         <Modal.Header>
           <Modal.Title>Asignar Herramientas</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="space-y-4">
-          {tools.alert.show && (
-        <Message
-          type={tools.alert.type}
-          className="mb-4"
-          onClose={() => setTools((prev) => ({...prev, alert: { ...prev.alert, show: false }}))}
-        >{tools.alert.msg}</Message>)}
+            {tools.alert.show && (
+              <Message
+                type={tools.alert.type}
+                className="mb-4"
+                onClose={() => setTools((prev) => ({ ...prev, alert: { ...prev.alert, show: false } }))}
+              >{tools.alert.msg}</Message>)}
             {tools.toAssign.map((tool, index) => (
               <div key={index} className="flex flex-col space-y-2 p-3 bg-gray-50 rounded">
                 <div className="flex items-center space-x-3">
@@ -484,22 +498,17 @@ export const ShiftsPage = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Herramienta {index + 1}
                     </label>
-                    <AutoComplete
+                    <SelectPicker
                       data={tools.available}
-                      placeholder="Buscar herramienta"
-                      value={tool.toolId ? tools.available.find(t => t.value === tool.toolId)?.label : ''} // Muestra el name basado en toolId
-                      onChange={(value) => handleToolChange(index, 'toolId', value)} // toolId será el id del producto
-                      onSearch={!tool.toolId ? fetchAvailableTools : undefined} // Deshabilitar búsqueda si ya se seleccionó una herramienta
-                      renderItem={(item) => (
-                        <div className="p-2 hover:bg-gray-100">
-                          <div>{item.label}</div> 
-                        </div>
-                      )}
-                      className="w-full"
-                      disabled={tools.available.some(t => t.value === tool.toolId)} // Deshabilitar solo si toolId coincide con una opción disponible
+                      value={tool.toolId}
+                      onChange={(value) => handleToolChange(index, 'toolId', value)}
+                      placeholder="Seleccionar herramienta"
+                      searchable
+                      onSearch={fetchAvailableTools}
+                      style={{ width: '100%' }}
                     />
                   </div>
-                  
+
                   <div className="w-24">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Cantidad
@@ -512,9 +521,8 @@ export const ShiftsPage = () => {
                       className="w-full"
                       disabled={!tool.toolId}
                     />
-                   
                   </div>
-                  
+
                   <Button
                     appearance="ghost"
                     color="red"
@@ -525,7 +533,7 @@ export const ShiftsPage = () => {
                     <Trash className="w-4 h-4" />
                   </Button>
                 </div>
-                
+
                 {tool.toolId && (
                   <div className="text-sm text-gray-600">
                     Seleccionado: <span className="font-medium">{getToolName(tool.toolId)}</span>
@@ -533,9 +541,9 @@ export const ShiftsPage = () => {
                 )}
               </div>
             ))}
-            
-            <Button 
-              appearance="ghost" 
+
+            <Button
+              appearance="ghost"
               onClick={handleAddTool}
               disabled={tools.assignLoading || tools.toAssign.some(t => !t.toolId)}
               startIcon={<Edit />}
@@ -546,15 +554,27 @@ export const ShiftsPage = () => {
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button 
-            onClick={() => setModals((prev) => ({ ...prev, showAssignToolModal: false }))} 
+          <Button
+            onClick={() => {
+              if (!tools.assignLoading) {
+                setModals((prev) => ({ ...prev, showAssignToolModal: false }));
+                setTools({
+                  toAssign: [],
+                  available: [],
+                  search: "",
+                  assignLoading: false,
+                  alert: { msg: "", show: false, type: "error" },
+                });
+
+              }
+            }}
             appearance="subtle"
             disabled={tools.assignLoading}
           >
             Cancelar
           </Button>
-          <Button 
-            onClick={handleAssignTools} 
+          <Button
+            onClick={handleAssignTools}
             appearance="primary"
             loading={tools.assignLoading}
             disabled={tools.toAssign.length === 0 || tools.toAssign.some(t => !t.toolId)}

@@ -104,7 +104,7 @@ const toolsEmployeShift = [
     key: "toolStatus",
     title: "Asignadas",
     render: ((item) => (
-        <span className={`px-2 py-1 text-xs rounded-full ${item.toolStatus == 'COMPLETO' ? ' bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'}`}>{item.toolStatus == "COMPLETO" ? 'Completo' : 'Faltante'}</span>
+        <span className={`px-2 py-1 text-xs rounded-full ${item.toolStatus == 'COMPLETO' ? ' bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'}`}>{item.toolStatus == "COMPLETO" ? 'Completo' : item.toolStatus}</span>
     )
     )
 }

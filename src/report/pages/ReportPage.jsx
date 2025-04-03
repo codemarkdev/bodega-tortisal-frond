@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Panel, Button, SelectPicker } from 'rsuite';
+import { Card, Panel, Button, SelectPicker, Modal, Input } from 'rsuite';
 import apiRequest from '../../helpers/ApiRequest';
 import { Shift, History,  Table } from '../../ui';
 import { columsMissing } from '../../../confiTable';
@@ -17,7 +17,54 @@ export const ReportPage = () => {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
   const [ultimaActualizacion, setUltimaActualizacion] = useState(new Date());
+  const [showModal, setShowModal] = useState(false);
+  const [currentItem, setCurrentItem] = useState(null);
+  const [quantityReturned, setQuantityReturned] = useState("");
+  const [errorMessage, setErrorMessage] = useState(""); // State to hold error messages
 
+  const openModal = (item) => {
+    setCurrentItem(item);
+    setQuantityReturned("");
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setCurrentItem(null);
+  };
+
+  const confirmReturn = () => {
+    if (!quantityReturned || isNaN(quantityReturned) || quantityReturned <= 0) {
+      setErrorMessage("Por favor, ingrese una cantidad válida.");
+      return;
+    }
+
+    apiRequest({
+      method: "POST",
+      path: 'missing-products/return',
+      data: {
+        employeeId: currentItem.shift.employee.id,
+        productId: currentItem.product.id,
+        quantityReturned: parseInt(quantityReturned, 10)
+      }
+    }).then((resp) => {
+      setErrorMessage(""); // Clear any previous error messages
+      getMissingProduct(selectedEmployee); // Refresh the data after returning the product
+    
+      if (resp.status === 400) {
+        setErrorMessage(resp.data.message); 
+      }else{
+        obtenerDatosReporte()
+        closeModal();
+      } 
+
+    }).catch((error) => {
+    
+        console.error("Error al devolver el producto:", error);
+        setErrorMessage("Hubo un error al devolver el producto. Inténtalo de nuevo.");
+   
+    });
+  };
 
   const obtenerDatosReporte = async () => {
     try {
@@ -114,6 +161,14 @@ export const ReportPage = () => {
     );
   }
 
+
+  const sendReturned = (item) => {
+    openModal(item);
+  };
+  
+  const actions = [
+    { label: 'Devolver herramienta', icon: History, onClick: (shift) => openModal(shift)  }]
+
   if (error) {
     return (
       <div className="max-w-md mx-auto mt-8 p-4 bg-red-50 border border-red-200 rounded-lg text-center">
@@ -141,97 +196,126 @@ export const ReportPage = () => {
     );
   }
 
+
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex justify-between items-center mb-8">
-        <h3 className="text-2xl font-bold text-gray-800">Panel de Reporte de Herramientas Faltantes</h3>
-        <div className="flex items-center space-x-4">
-          <span className="text-sm text-gray-600">
-            Última actualización: <span className="font-medium">{formatearFecha(ultimaActualizacion)}</span>
-          </span>
-          <button
-            onClick={obtenerDatosReporte}
-            className="p-2 bg-blue-500 text-white rounded-full shadow hover:bg-blue-600 transition duration-200"
-            disabled={cargando}
-          >
-            {cargando ? (
-              <span className="animate-spin inline-block">
-                <Shift className="w-5 h-5" />
-              </span>
-            ) : (
-              <History className="w-5 h-5" />
-            )}
-          </button>
+    <>
+      <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="flex justify-between items-center mb-8">
+          <h3 className="text-2xl font-bold text-gray-800">Panel de Reporte de Herramientas Faltantes</h3>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-gray-600">
+              Última actualización: <span className="font-medium">{formatearFecha(ultimaActualizacion)}</span>
+            </span>
+            <button
+              onClick={obtenerDatosReporte}
+              className="p-2 bg-blue-500 text-white rounded-full shadow hover:bg-blue-600 transition duration-200"
+              disabled={cargando}
+            >
+              {cargando ? (
+                <span className="animate-spin inline-block">
+                  <Shift className="w-5 h-5" />
+                </span>
+              ) : (
+                <History className="w-5 h-5" />
+              )}
+            </button>
+          </div>
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card className="shadow-lg px-8 py-6 bg-white rounded-lg hover:shadow-xl transition duration-200">
+            <h4 className="text-lg font-semibold text-gray-800">Herramienta más faltante</h4>
+            <p className="text-sm text-gray-500 mt-2">
+              {datosReporte?.mostMissingProduct?.product?.name || 'N/A'}
+            </p>
+            <p className="text-sm text-gray-600 mt-2">
+              Total faltante: <span className="font-medium">{datosReporte?.mostMissingProduct?.totalMissing || 0}</span>
+            </p>
+          </Card>
+
+          <Card className="shadow-lg px-8 py-6 bg-white rounded-lg hover:shadow-xl transition duration-200">
+            <h4 className="text-lg font-semibold text-gray-800">Empleado con más herramientas faltantes</h4>
+            <p className="text-sm text-gray-500 mt-2">
+              {datosReporte?.worstEmployee?.employee?.name  || 'N/A'}
+            </p>
+         
+          </Card>
+
+          <Card className="shadow-lg px-8 py-6 bg-white rounded-lg hover:shadow-xl transition duration-200">
+            <h4 className="text-lg font-semibold text-gray-800">Total general de herramientas faltantes</h4>
+            <p className="text-sm text-gray-600 mt-2">
+              {formatearMoneda(datosReporte?.totalLoss?.totalLoss || 0)}
+            </p>
+          </Card>
+        </div>
+
+        <Panel
+          header={<h3 className="text-lg font-semibold text-gray-800">Filtrar por empleado</h3>}
+        collapsible
+          bordered
+          className="mt-8 bg-white shadow-lg rounded-lg"
+        >
+          <div className="flex items-center space-x-6">
+            <SelectPicker
+              data={employee.map((item) => ({ label: `${item?.firstname} ${item?.lastname}`, value: item.id }))}
+              placeholder="Selecciona un empleado para filtrar"
+              onChange={(value) => setSelectedEmployee(value)}
+              style={{ width: 300 }}
+              loading={employee.length === 0}
+              className="border border-gray-300 rounded-lg shadow-sm"
+            />
+
+            <Button
+              appearance="primary"
+              onClick={applyFilters}
+              loading={missingProduct.isloading}
+              className="bg-blue-500 text-white hover:bg-blue-600 transition duration-200"
+            >
+              Aplicar filtro
+            </Button>
+          </div>
+        </Panel>
+
+        {missingProduct.data.length === 0 && !missingProduct.isloading ? (
+          <div className="text-center text-gray-500 mt-6">
+            No hay datos disponibles para mostrar.
+          </div>
+        ) : (
+          <div className="mt-6 bg-white shadow-lg rounded-lg p-4">
+            <Table
+              data={missingProduct.data}
+              actions={actions}
+              columns={columsMissing}
+              className="rounded-lg overflow-hidden"
+            />
+          </div>
+        )}
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="shadow-lg px-8 py-6 bg-white rounded-lg hover:shadow-xl transition duration-200">
-          <h4 className="text-lg font-semibold text-gray-800">Herramienta más faltante</h4>
-          <p className="text-sm text-gray-500 mt-2">
-            {datosReporte?.mostMissingProduct?.product?.name || 'N/A'}
-          </p>
-          <p className="text-sm text-gray-600 mt-2">
-            Total faltante: <span className="font-medium">{datosReporte?.mostMissingProduct?.totalMissing || 0}</span>
-          </p>
-        </Card>
-
-        <Card className="shadow-lg px-8 py-6 bg-white rounded-lg hover:shadow-xl transition duration-200">
-          <h4 className="text-lg font-semibold text-gray-800">Empleado con más herramientas faltantes</h4>
-          <p className="text-sm text-gray-500 mt-2">
-            {datosReporte?.worstEmployee?.employee?.name  || 'N/A'}
-          </p>
-       
-        </Card>
-
-        <Card className="shadow-lg px-8 py-6 bg-white rounded-lg hover:shadow-xl transition duration-200">
-          <h4 className="text-lg font-semibold text-gray-800">Total general de herramientas faltantes</h4>
-          <p className="text-sm text-gray-600 mt-2">
-            {formatearMoneda(datosReporte?.totalLoss?.totalLoss || 0)}
-          </p>
-        </Card>
-      </div>
-
-      <Panel
-        header={<h3 className="text-lg font-semibold text-gray-800">Filtrar por empleado</h3>}
-      collapsible
-        bordered
-        className="mt-8 bg-white shadow-lg rounded-lg"
-      >
-        <div className="flex items-center space-x-6">
-          <SelectPicker
-            data={employee.map((item) => ({ label: `${item?.firstname} ${item?.lastname}`, value: item.id }))}
-            placeholder="Selecciona un empleado para filtrar"
-            onChange={(value) => setSelectedEmployee(value)}
-            style={{ width: 300 }}
-            loading={employee.length === 0}
-            className="border border-gray-300 rounded-lg shadow-sm"
+      <Modal open={showModal} onClose={closeModal}>
+        <Modal.Header>
+          <Modal.Title>Devolver Herramienta</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Ingrese la cantidad a devolver:</p>
+          <Input
+            type="number"
+            value={quantityReturned}
+            onChange={(value) => setQuantityReturned(value)}
+            placeholder="Cantidad"
           />
-
-          <Button
-            appearance="primary"
-            onClick={applyFilters}
-            loading={missingProduct.isloading}
-            className="bg-blue-500 text-white hover:bg-blue-600 transition duration-200"
-          >
-            Aplicar filtro
+          {errorMessage && (
+            <p className="text-red-500 mt-2">{errorMessage}</p> // Display error message in red
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button onClick={confirmReturn} appearance="primary">
+            Confirmar
           </Button>
-        </div>
-      </Panel>
-
-      {missingProduct.data.length === 0 && !missingProduct.isloading ? (
-        <div className="text-center text-gray-500 mt-6">
-          No hay datos disponibles para mostrar.
-        </div>
-      ) : (
-        <div className="mt-6 bg-white shadow-lg rounded-lg p-4">
-          <Table
-            data={missingProduct.data}
-            columns={columsMissing}
-            className="rounded-lg overflow-hidden"
-          />
-        </div>
-      )}
-    </div>
+          <Button onClick={closeModal} appearance="subtle">
+            Cancelar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </>
   );
 };

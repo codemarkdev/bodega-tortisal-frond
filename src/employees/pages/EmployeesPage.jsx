@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom"
 import { columnsEmployees } from "../../../confiTable"
 import { Edit, Table, Trash } from "../../ui"
 import apiRequest from "../../helpers/ApiRequest"
-import { DeleteEmployee } from "./DeleteEmployee"
 import { FloatingAlert } from "../../ui/components/FlotingAlert"
 
 export const EmployeesPage = () => {
@@ -18,8 +17,6 @@ export const EmployeesPage = () => {
     msg: ''
   })
   const [error, setError] = useState(null)
-  const [employeeToDelete, setEmployeeToDelete] = useState(null)
-
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalItems: 0,
@@ -157,12 +154,11 @@ export const EmployeesPage = () => {
             message={alert.msg}  
             type={alert.type} 
             onClose={() => {
-              setListShifts(prev => ({
-                ...prev,
-                alert: {
-                  ...prev.alert,
-                  show: false
-                }
+              setAlert(prev => ({
+                show: false,
+                msg: '',
+                type: 'error'
+                
               }));
             }}
             duration={3000}

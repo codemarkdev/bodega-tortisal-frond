@@ -1,6 +1,6 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { Modal } from "rsuite";
+import { Button, Modal } from "rsuite";
 import apiRequest from "../../helpers/ApiRequest";
 import { Alert, Breadcrumb, Form, History, Input, Table } from "../../ui";
 import { toolsEmployeShift } from "../../../confiTable";
@@ -9,6 +9,7 @@ import { FloatingAlert } from "../../ui/components/FlotingAlert";
 
 export const ShiftToolsDetails = () => {
     const { idShift, idEmployee } = useParams();
+    const  navigate = useNavigate()
 
     const [state, setState] = useState({
         modalVisible: false,
@@ -128,13 +129,7 @@ export const ShiftToolsDetails = () => {
 
     return (
         <>
-            <Breadcrumb 
-            
-            items={[
-                { label: 'Turnos', href: '/shifts' },
-                { label: 'Detalle de herramientas', href: `/shifts/${idShift}/${idEmployee}` }
-            ]}
-            />
+            <Button type="ghost" onClick={() => navigate('/shifts')}>Regresar</Button>
 
             {alertVisible && state.error && (
                 <FloatingAlert 
