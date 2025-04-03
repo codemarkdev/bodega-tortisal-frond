@@ -13,7 +13,7 @@ export const ShiftsPage = () => {
     dataPage: [],
     isLoading: false,
     alert: { msg: "", show: false, type: "error" },
-    selectedDate: null,
+    selectedDate: new Date(),
   });
 
   const [modals, setModals] = useState({
@@ -70,7 +70,9 @@ export const ShiftsPage = () => {
     }
   };
 
-  useEffect(() => { getShifts(); }, []);
+  useEffect(() => { 
+    getShifts(new Date()); 
+  }, []);
 
   const handleDateChange = (date) => {
     setListShifts((prev) => ({ ...prev, selectedDate: date }));
@@ -87,10 +89,10 @@ export const ShiftsPage = () => {
     setCurrentShift({ idEmployee, shiftId });
     try {
       const { status, data } = await apiRequest({ method: "GET", path: `tools-issued/employee/${idEmployee}/shift/${shiftId}` });
-      if (status === 200 && data.tools.some((tool) => tool.issued > (tool.returned ?? 0))) {
-        setModals((prev) => ({ ...prev, showToolModal: true }));
-        return;
-      }
+      // if (status === 200 && data.tools.some((tool) => tool.issued > (tool.returned ?? 0))) {
+      //   setModals((prev) => ({ ...prev, showToolModal: true }));
+      //   return;
+      // }
       await proceedWithCheckOut(false, idEmployee, shiftId);
     } catch {
       setListShifts((prev) => ({
@@ -104,21 +106,21 @@ export const ShiftsPage = () => {
   const proceedWithCheckOut = async (returnTools = false, idE, idS) => {
 
     try {
-      if (returnTools) {
-        const { status, data } = await apiRequest({ method: "GET", path: `tools-issued/employee/${idE}/shift/${idS}` });
-        if (status === 200) {
-          const unreturnedTools = data.tools.filter((tool) => tool.issued > (tool.returned ?? 0));
-          await Promise.all(
-            unreturnedTools.map((tool) =>
-              apiRequest({
-                method: "POST",
-                path: `tools-issued/return/${idS}`,
-                data: { tools: [{ productId: tool.product.id, quantityReturned: 0 }] },
-              })
-            )
-          );
-        }
-      }
+      // if (returnTools) {
+      //   const { status, data } = await apiRequest({ method: "GET", path: `tools-issued/employee/${idE}/shift/${idS}` });
+      //   if (status === 200) {
+      //     const unreturnedTools = data.tools.filter((tool) => tool.issued > (tool.returned ?? 0));
+      //     await Promise.all(
+      //       unreturnedTools.map((tool) =>
+      //         apiRequest({
+      //           method: "POST",
+      //           path: `tools-issued/return/${idS}`,
+      //           data: { tools: [{ productId: tool.product.id, quantityReturned: 0 }] },
+      //         })
+      //       )
+      //     );
+      //   }
+      // }
       const { status, data } = await apiRequest({ method: "POST", path: `shifts/employee/${idE}/close` });
       setListShifts((prev) => ({
         ...prev,

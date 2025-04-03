@@ -148,7 +148,8 @@ export const ShiftToolsDetails = () => {
                         label: 'Devolver herramienta',
                         icon: History,
                         onClick: openReturnModal,
-                        disabled: (tool) => (tool.issued - tool.returned) <= 0
+                        disabled: (tool) => 
+                            (tool.issued - tool.returned) <= 0 || tool.toolStatus === "CONSUMIBLE"
                     }
                 ]}
                 data={state.tools}
