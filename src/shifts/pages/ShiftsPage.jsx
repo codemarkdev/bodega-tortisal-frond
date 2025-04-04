@@ -7,13 +7,23 @@ import { FloatingAlert } from "../../ui/components/FlotingAlert";
 import { DatePicker, Button, Panel, Message, Modal, Input, InputNumber, SelectPicker, AutoComplete } from 'rsuite';
 import { useRef } from "react";
 
+const getElSalvadorDate = () => {
+  const now = new Date();
+  // Ajustar a UTC-6 (Zona horaria de El Salvador)
+  return new Date(now.getTime() - 6 * 60 * 60 * 1000);
+};
+
 export const ShiftsPage = () => {
   const [listShifts, setListShifts] = useState({
     data: [],
     dataPage: [],
     isLoading: false,
     alert: { msg: "", show: false, type: "error" },
-    selectedDate: null,
+    selectedDate: (() => {
+      const today = getElSalvadorDate();
+      today.setHours(0, 0, 0, 0); // Establecer Inicio del dia
+      return today;
+    })(),
   });
 
   const [modals, setModals] = useState({
@@ -37,7 +47,12 @@ export const ShiftsPage = () => {
 
   const formatDate = (date) => {
     if (!date) return '';
-    return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return date.toLocaleDateString('es-SV', {
+      timeZone: 'America/El_Salvador',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).replace(/\//g, '-');
   };
 
   const getShifts = async (date = null, page = 1) => {
@@ -70,7 +85,7 @@ export const ShiftsPage = () => {
     }
   };
 
-  useEffect(() => { getShifts(); }, []);
+  useEffect(() => { getShifts(listShifts.selectedDate); }, []);
 
   const handleDateChange = (date) => {
     setListShifts((prev) => ({ ...prev, selectedDate: date }));
@@ -78,8 +93,10 @@ export const ShiftsPage = () => {
   };
 
   const handleClearDate = () => {
-    setListShifts((prev) => ({ ...prev, selectedDate: null }));
-    getShifts();
+    const today = getElSalvadorDate();
+    today.setHours(0, 0, 0, 0);
+    setListShifts((prev) => ({ ...prev, selectedDate: today }));
+    getShifts(today);
   };
 
   const handleCheckOutTime = async (shiftId, idEmployee) => {
@@ -385,7 +402,7 @@ export const ShiftsPage = () => {
     <div className="flex flex-col px-4 py-4 space-y-4">
       <Breadcrumb items={[{ label: 'Turnos', href: '/shifts' }]} />
 
-      <Panel header={<h3 className="text-lg font-semibold">Filtrar por fecha</h3>} collapsible bordered>
+      <Panel header={<h3 className="text-lg font-semibold">Filtrar por fecha - Prueba</h3>} collapsible bordered>
         <div className="flex items-center space-x-4">
           <DatePicker
             placeholder="Selecciona una fecha"
@@ -394,6 +411,22 @@ export const ShiftsPage = () => {
             onChange={handleDateChange}
             cleanable={false}
             className="w-48"
+            maxDate={new Date(getElSalvadorDate().setHours(23, 59, 59, 999))}
+            locale={{
+              sunday: 'Dom',
+              monday: 'Lun',
+              tuesday: 'Mar',
+              wednesday: 'Mier',
+              thursday: 'Jue',
+              friday: 'Vier',
+              saturday: 'Sab',
+              ok: 'Aceptar',
+              today: 'Hoy',
+              yesterday: 'Ayer',
+              hours: 'Horas',
+              minutes: 'Minutos',
+              seconds: 'Segundos',
+            }}
           />
 
           {listShifts.selectedDate && (
@@ -440,7 +473,7 @@ export const ShiftsPage = () => {
           currentPage: pagination.currentPage,
           onPageChange: handlePageChange,
         }}
-        emptyMessage={listShifts.selectedDate
+        emptyMessage={listShifts.selectedDate.getTime() === new Date(getElSalvadorDate().setHours(0,0,0,0))
           ? "No hay turnos registrados para esta fecha"
           : "No hay turnos registrados"}
         rowClassName={(rowData, index) =>

@@ -102,7 +102,7 @@ export const AddProdutcs = () => {
         <FormField>
           <Input
             label="Precio de Compra"
-            type="number"
+            type="text"
             name="purchase_price"
             value={formData.purchase_price}
             onChange={handleChange}
@@ -110,6 +110,12 @@ export const AddProdutcs = () => {
             step="0.01"
             min="0"
             placeholder="Ej: 29.5"
+            onKeyPress={(e) => {
+              // Permitir solo números y punto
+              if (!/[0-9.]/.test(e.key)) {
+                e.preventDefault();
+              }
+            }}
           />
         </FormField>
 
