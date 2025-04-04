@@ -7,11 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start:pm2": "pm2 serve dist 8080 --spa --name bodega-tortisal-frontend"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.17",
     "axios": "^1.8.4",
+    "pnpm": "^10.7.0",
     "prop-types": "^15.8.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -28,6 +30,7 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "serve": "^14.2.4",
     "vite": "^6.2.0"
   }
 }
