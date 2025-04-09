@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start:pm2": "pm2 serve dist 8080 --spa --name bodega-tortisal-frontend"
+    "start:pm2": "pm2 serve dist 8080 --spa --name bodega-tortisal-frontend",
+    "build:production": "pnpm run build && pnpm run start:pm2"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.17",
