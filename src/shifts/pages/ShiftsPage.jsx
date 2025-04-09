@@ -402,7 +402,7 @@ export const ShiftsPage = () => {
     <div className="flex flex-col px-4 py-4 space-y-4">
       <Breadcrumb items={[{ label: 'Turnos', href: '/shifts' }]} />
 
-      <Panel header={<h3 className="text-lg font-semibold">Filtrar por fecha - Prueba</h3>} collapsible bordered>
+      <Panel header={<h3 className="text-lg font-semibold">Filtrar por fecha</h3>} collapsible bordered>
         <div className="flex items-center space-x-4">
           <DatePicker
             placeholder="Selecciona una fecha"
