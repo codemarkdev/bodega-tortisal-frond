@@ -101,12 +101,23 @@ const toolsEmployeShift = [
     title: "Devueltos",
 },
 {
-    key: "toolStatus",
-    title: "Asignadas",
-    render: ((item) => (
-        <span className={`px-2 py-1 text-xs rounded-full ${item.toolStatus == 'COMPLETO' ? ' bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'}`}>{item.toolStatus == "COMPLETO" ? 'Completo' : item.toolStatus}</span>
-    )
-    )
+  key: "toolStatus",
+   title: "Asignadas",
+   render: (item) => {
+     const statusColors = {
+       COMPLETO: "bg-green-100 text-green-600",
+       PENDIENTE: "bg-yellow-100 text-yellow-600",
+       CON_FALTANTES: "bg-orange-100 text-orange-600",
+       PARCIAL: "bg-blue-100 text-blue-600",
+       CONSUMIBLE: "bg-gray-100 text-gray-600"
+     };
+ 
+     return (
+       <span className={`px-2 py-1 text-xs rounded-full ${statusColors[item.toolStatus] || "bg-gray-100 text-gray-600"}`}>
+         {item.toolStatus.charAt(0).toUpperCase() + item.toolStatus.slice(1).toLowerCase()}
+       </span>
+     );
+   }
 }
 ];
 
